@@ -10,7 +10,7 @@ def showTable(n=11, m=14, verticalWall="\u01c1", horizontalWall="\u2550", rowSep
     ]
     
         
-    table[5] = table[5][:4] + "X" + table[5][5:]
+    table[5] = table[5][:8] + "X" + table[5][9:]
     for r in table:
         for v in r:
             print(v, end="")
