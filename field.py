@@ -1,15 +1,20 @@
 class Field:
-    def __init__(self, i, j, connected, isInital=False):
+    def __init__(self, i, j, connected, initialFor=None):
         self.i = i
         self.j = j
+        self.initialFor = initialFor
         self.connected = set()
+        for c in connected:
+            self.connected.add(c)
 
-    def connect(self, f: Field):
-        if (f.i, f.i) not in self.connected:
-            self.connected.add((f.i, f.i))
+    def connect(self, f):
+        if (f.i, f.j) not in self.connected:
+            self.connected.add((f.i, f.j))
             f.connect(self)
-    
-    def disconnect(self, f: Field):
-        if (f.i, f.i) in self.connected:
-            self.connected.remove((f.i, f.i))
+
+    def disconnect(self, f):
+        if (f.i, f.j) in self.connected:
+            print(
+                f"Disconnect from ({self.i}, {self.j}) connection to ({f.i}, {f.j})")
+            self.connected.remove((f.i, f.j))
             f.disconnect(self)
