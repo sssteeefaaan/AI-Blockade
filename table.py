@@ -19,18 +19,28 @@ class Table:
         for i in range(0, self.n):
             self.fields.append([])
             for j in range(0, self.m):
-                connected = []
+                connected = set()
                 if i - 2 > 0:
-                    connected += [(i - 2, j)]
-                if i + 2 <= self.n:
-                    connected += [(i + 2, j)]
+                    connected.add((i - 2, j))
+                if i + 2 < self.n:
+                    connected.add((i + 2, j))
                 if j - 2 > 0:
-                    connected = [(i, j - 2)]
-                if j + 2 <= self.m:
-                    connected = [(i, j + 2)]
+                    connected.add((i, j - 2))
+                if j + 2 < self.m:
+                    connected.add((i, j + 2))
 
-                connected += [(i + x, j + y) for x in (1, -1) for y in (1, -1)
-                              if i + x <= self.n and i + x > 0 and j + y <= self.m and j + y > 0]
+                if i + 1 < self.n:
+                    if j + 1 < self.m:
+                        connected.add((i + 1, j + 1))
+                    if j - 1 > 0:
+                        connected.add((i + 1, j - 1))
+                if i - 1 > 0:
+                    if j + 1 < self.m:
+                        connected.add((i - 1, j + 1))
+                    if j - 1 > 0:
+                        connected.add((i - 1, j - 1))
+
+                print((i, j), "connected to", connected)
 
                 # Connected X i connected Ox ????
                 # Initial se razlikuju i na svoje inital ne mogu da stanu, ali na tudje initial mogu i to cak ukoliko je
@@ -218,3 +228,8 @@ class Table:
             if wall[1] == "P":
                 self.setBlueWall((wall[1], wall[2]))
         self.view.move(name, currentPos, nextPos, wall)
+
+    def manhattan(self, currentPos, followedPos):
+        print((followedPos[0] - 1, followedPos[1] - 1), (currentPos[0]-1, currentPos[1]-1),
+              self.fields[currentPos[0] - 1][currentPos[0] - 1].connected)
+        return (followedPos[0] - 1, followedPos[1] - 1) in self.fields[currentPos[0] - 1][currentPos[0] - 1].connected

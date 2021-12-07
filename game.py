@@ -104,6 +104,8 @@ class Game:
                     if not self.table.checkBlueWall((move[2][1], move[2][2])):
                         raise Exception(
                             "Blue wall cannot be set on the given position!")
+            if not self.table.manhattan(self.next.firstGP.position if move[0][1] == 1 else self.next.secondGP.position, move[1]):
+                raise Exception("Invalid move!")
             # ukoliko je polje zauzeto igracem, dozvoljeno je kretanje U TOM SMERU ZA JEDAN
             # u suprotnom kretanje je dozvoljeno ukoliko nije postavljen zid i igrac se pomera
             # u manhattan pattern-u
