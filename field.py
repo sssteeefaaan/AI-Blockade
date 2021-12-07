@@ -1,15 +1,15 @@
 class Field:
-    def __init__(self, i, j, connected, isInital= False):
+    def __init__(self, i, j, connected, isInital=False):
         self.i = i
         self.j = j
-        self.connected = []
+        self.connected = set()
+
+    def connect(self, f: Field):
+        if (f.i, f.i) not in self.connected:
+            self.connected.add((f.i, f.i))
+            f.connect(self)
     
-    def setGreenWall(self, i, j):
-        self.connected = list(filter(lambda x: x.i, self.connected))
-        
-    def setBlueWall(self, i, j):
-        self.connected = list(filter(lambda x: x.i, self.connected))
-        
-    def setPlayer(self, i, j):
-        self.connected = list(filter(lambda x: x.i, self.connected))
-        
+    def disconnect(self, f: Field):
+        if (f.i, f.i) in self.connected:
+            self.connected.remove((f.i, f.i))
+            f.disconnect(self)
