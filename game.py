@@ -114,12 +114,10 @@ class Game:
             # elif not (self.table.moveV(self.next.firstGP.position if move[0][1] == 1 else self.next.secondGP.position, move[1]) and self.table.manhattan(self.next.firstGP.position if move[0][1] == 1 else self.next.secondGP.position, move[1]) == 2):
             #     raise Exception("Invalid move!")
             print(self.manhattan(self.next.firstGP.position, move[1]))
-            if not (self.table.areConnected(self.next.firstGP.position if move[0][1] == 1 else self.next.secondGP.position, move[1]) and self.manhattan(self.next.firstGP.position, move[1]) == 2):
+            if not (self.table.areConnected(self.next.firstGP.position if move[0][1] == 1 else self.next.secondGP.position, move[1]) and (self.manhattan(self.next.firstGP.position, move[1]) == 2 if move[0][1] == 1 else self.manhattan(self.next.secondGP.position, move[1]) == 2)):
                 raise Exception("Invalid move!")
 
-            # ukoliko je polje zauzeto igracem, dozvoljeno je kretanje U TOM SMERU ZA JEDAN
-            # u suprotnom kretanje je dozvoljeno ukoliko nije postavljen zid i igrac se pomera
-            # u manhattan pattern-u
+            
         except Exception as e:
             print(e)
             print_stack()
