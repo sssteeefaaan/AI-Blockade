@@ -104,8 +104,19 @@ class Game:
                     if not self.table.checkBlueWall((move[2][1], move[2][2])):
                         raise Exception(
                             "Blue wall cannot be set on the given position!")
-            if not self.table.manhattan(self.next.firstGP.position if move[0][1] == 1 else self.next.secondGP.position, move[1]):
+            # if not self.table.manhattan(self.next.firstGP.position if move[0][1] == 1 else self.next.secondGP.position, move[1]):
+            #     raise Exception("Invalid move!")
+
+            #Ovo nam treba kad mu je zauzeto mesto pa mora za po jedan da se skloni
+
+            # if not (self.table.moveH(self.next.firstGP.position if move[0][1] == 1 else self.next.secondGP.position, move[1]) and self.table.manhattan(self.next.firstGP.position if move[0][1] == 1 else self.next.secondGP.position, move[1]) == 2):
+            #     raise Exception("Invalid move!")
+            # elif not (self.table.moveV(self.next.firstGP.position if move[0][1] == 1 else self.next.secondGP.position, move[1]) and self.table.manhattan(self.next.firstGP.position if move[0][1] == 1 else self.next.secondGP.position, move[1]) == 2):
+            #     raise Exception("Invalid move!")
+            print(self.manhattan(self.next.firstGP.position, move[1]))
+            if not (self.table.areConnected(self.next.firstGP.position if move[0][1] == 1 else self.next.secondGP.position, move[1]) and self.manhattan(self.next.firstGP.position, move[1]) == 2):
                 raise Exception("Invalid move!")
+
             # ukoliko je polje zauzeto igracem, dozvoljeno je kretanje U TOM SMERU ZA JEDAN
             # u suprotnom kretanje je dozvoljeno ukoliko nije postavljen zid i igrac se pomera
             # u manhattan pattern-u
@@ -121,6 +132,8 @@ class Game:
         elif self.human.isWinner((self.computer.home1, self.computer.home2)):
             self.winner = self.human
 
+    def manhattan(self, currentPos, followedPos):
+        return abs(currentPos[0] - followedPos[0]) + abs(currentPos[1] - followedPos[1])
 
 def main():
     g = Game()

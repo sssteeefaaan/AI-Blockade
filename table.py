@@ -20,11 +20,11 @@ class Table:
             self.fields.append([])
             for j in range(0, self.m):
                 connected = set()
-                if i - 2 > 0:
+                if i - 2 >= 0:
                     connected.add((i - 2, j))
                 if i + 2 < self.n:
                     connected.add((i + 2, j))
-                if j - 2 > 0:
+                if j - 2 >= 0:
                     connected.add((i, j - 2))
                 if j + 2 < self.m:
                     connected.add((i, j + 2))
@@ -229,7 +229,16 @@ class Table:
                 self.setBlueWall((wall[1], wall[2]))
         self.view.move(name, currentPos, nextPos, wall)
 
-    def manhattan(self, currentPos, followedPos):
-        print((followedPos[0] - 1, followedPos[1] - 1), (currentPos[0]-1, currentPos[1]-1),
-              self.fields[currentPos[0] - 1][currentPos[0] - 1].connected)
-        return (followedPos[0] - 1, followedPos[1] - 1) in self.fields[currentPos[0] - 1][currentPos[0] - 1].connected
+    # def manhattan(self, currentPos, followedPos):
+    #     print((followedPos[0] - 1, followedPos[1] - 1), (currentPos[0]-1, currentPos[1]-1),
+    #           self.fields[currentPos[0] - 1][currentPos[1] - 1].connected)
+    #     return (followedPos[0] - 1, followedPos[1] - 1) in self.fields[currentPos[0] - 1][currentPos[1] - 1].connected
+
+    def areConnected(self, currentPos, followedPos):
+        return (followedPos[0] - 1, followedPos[1] - 1) in self.fields[currentPos[0] - 1][currentPos[1] - 1].connected
+
+    def moveH(self, currentPos, followedPos):
+        return followedPos[0] == currentPos[0] 
+
+    def moveV(self, currentPos, followedPos):
+        return followedPos[1] == currentPos[1] 
