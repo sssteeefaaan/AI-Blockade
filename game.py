@@ -5,24 +5,25 @@ from table import Table
 class Game:
     def __init__(self, n=11, m=14, initial={(4, 4): 'X', (8, 4): 'X', (4, 11): 'O', (8, 11): 'O'}, wallNumb=9, greenWall="\u01c1", blueWall="\u2550", rowSep="\u23AF"):
         self.table = Table(n, m, initial, wallNumb, greenWall, blueWall, rowSep)
-        self.wallNumb = wallNumb
         self.human = None
         self.computer = None
         self.next = None
         self.winner = None
 
-    def start(self):
+    def start(self, wallNumb, initial):
         while self.next is None:
             try:
+                xPos = [x for x in initial.keys() if initial[x]=="X"]
+                oPos = [o for o in initial.keys() if initial[o]=="O"]
                 match input("X/o?\n"):
                     case ("X" | "x"):
-                        self.human = Player(True, False, self.wallNumb)
+                        self.human = Player(True, False, wallNumb, xPos[0], xPos[1])
                         self.next = self.human
-                        self.computer = Player(False, True, self.wallNumb)
+                        self.computer = Player(False, True, wallNumb, oPos[0], oPos[1])
                     case ("O" | "o"):
-                        self.computer = Player(True, True, self.wallNumb)
+                        self.computer = Player(True, True, wallNumb, oPos[0], oPos[1])
                         self.next = self.computer
-                        self.human = Player(False, False, self.wallNumb)
+                        self.human = Player(False, False, wallNumb, xPos[0], xPos[1])
                     case _:
                         raise Exception("Invalid player selection input!")
             except Exception as e:
@@ -107,12 +108,11 @@ class Game:
                     if not self.table.isCorrectBlueWall((move[2][1], move[2][2])):
                         raise Exception(
                             "Blue wall cannot be set on the given position!")
-            if self.manhattan(self.next.firstGP.position if move[0][1] == 1 else self.next.secondGP.position, move[1]) != 2:
-                raise Exception(
-                    "Invalid move! Only manhattan pattern moves allowed!")
-            if not self.table.areConnected(self.next.firstGP.position if move[0][1] == 1 else self.next.secondGP.position, move[1]):
+            # if self.manhattan(self.next.firstGP.position if move[0][1] == 1 else self.next.secondGP.position, move[1]) != 2:
+            #     raise Exception(
+            #         "Invalid move! Only manhattan pattern moves allowed!")
+            if not self.table.areConnected(self.next.firstGP.position if move[0][1] == 1 else self.next.secondGP.position, move[1], move[0][0]):
                 raise Exception("Invalid move! Something's on the way...")
-
         except Exception as e:
             print(e)
             return False
@@ -148,7 +148,7 @@ def main():
     while len(initial.keys()) < 4:
         temp = input(
             f"Input {len(initial)-1}. initial position for O (Empty for the default value of ({4 if len(initial)-1 == 1 else 8}, 11)): ")
-        temp = temp if temp else f"({4 if len(initial)-1 == 1 else 8}, 11)"
+        temp = temp if temp else f"({4 if len(initial)-1 == 1 else 8}, 10)"
         initial[tuple(map(lambda x: int(x), temp.replace(
             "(", "").replace(")", "").replace(",", "").split(" ")))] = "O"
     wallNumb = ""
@@ -158,8 +158,7 @@ def main():
         wallNumb = wallNumb if wallNumb else "9"
 
     g = Game(int(n), int(m), initial, int(wallNumb))
-    g.start()
-
+    g.start(int(wallNumb), initial)
 
 if __name__ == "__main__":
     main()

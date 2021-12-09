@@ -6,7 +6,6 @@ class Table:
     def __init__(self, n=11, m=14, initial={(4, 4): 'X', (8, 4): 'X', (4, 11): 'O', (8, 11): 'O'}, wallNumb=9, greenWall="\u01c1", blueWall="\u2550", rowSep="\u23AF"):
         self.n = n
         self.m = m
-
         self.view = View(n, m, wallNumb, greenWall, blueWall, rowSep)
 
         self.blueWalls = set()
@@ -19,8 +18,8 @@ class Table:
         for i in range(0, self.n):
             self.fields.append([])
             for j in range(0, self.m):
-                connectedX = set(self.createManhattan((i, j)))
-                connectedO = set(self.createManhattan((i, j)))
+                connectedX = set(self.createManhattan((i, j), 2))
+                connectedO = set(self.createManhattan((i, j), 2))
                 # ako je initialForX onda sve susede te pozicije dodajemo O, i suprotno za initalForO 
                 # ako je initialForX onda iz connectedX izbaci putem disconnect f-je (sve susede iz manhattan pattern-a)
                 self.fields[i].append(
@@ -29,12 +28,6 @@ class Table:
         for pos in initial.keys():
             self.view.setPosition(pos[0], pos[1], initial[pos])
         self.view.refresh()
-
-    def isCorrectBlueWall(self, pos):
-        return not (pos in self.greenWalls or [x for x in [(pos[0], pos[1] - 1), pos, (pos[0], pos[1] + 1)] if x in self.blueWalls])
-
-    def isCorrectGreenWall(self, pos):
-        return not (pos in self.blueWalls or [x for x in [(pos[0] - 1, pos[1]), pos, (pos[0] + 1, pos[1])] if x in self.greenWalls])
 
     def setBlueWall(self, pos):
         if self.isCorrectBlueWall(pos):
@@ -78,7 +71,7 @@ class Table:
                     forDisconnect += [((pos[0], pos[1]+1), (1, 1)),
                                       ((pos[0]+1, pos[1]+1), (-1, 1))]
 
-            self.disconnect(forDisconnect)
+            self.disconnect(forDisconnect, "P")
 
     def setGreenWall(self, pos):
         if self.isCorrectGreenWall(pos):
@@ -120,42 +113,32 @@ class Table:
                 if down1:
                     # x10 gubi vezu sa x12
                     forDisconnect += [((pos[0] + 1, pos[1]), (0, 2))]
-            self.disconnect(forDisconnect)
+            self.disconnect(forDisconnect, "Z")
 
-    #
-    #  x1    x2  x3   x4   x5
-    #  x6    x7  x8   x9   x10          => x13, X   => x11, x3, x15, x23, x7, x9, x19, x17 gubi vezu sa x13 u okviru connectedO
-    #  x11  x12  x13  x14  x15                      => x11 dobija vezu sa x12, x3 dobija vezu sa x8, x15 dobija vezu sa x14, x23 dobija vezu sa x18 u okviru connectedO
-    #  x16  x17  x18  x19  x20
-    #  x21  x22  x23  x24  x25          => x13, O   => x11, x3, x15, x23, x7, x9, x19, x17 gubi vezu sa x13 u okviru connectedX
-    #  x26  x27  x28  x29  x30                      => x11 dobija vezu sa x12, x3 dobija vezu sa x8, x15 dobija vezu sa x14, x23 dobija vezu sa x18 u okviru connectedX
-    #
-    def createManhattan(self, currentPos):
-        return [(currentPos[0] + x, currentPos[1] + y) for x in range(-2, 3) for y in range(-2, 3) if currentPos[0] +
-                                     x >= 0 and currentPos[0] + x < self.n and currentPos[1] + y >= 0 and currentPos[1] + y < self.m and abs(x) + abs(y) == 2]
+    def setGamePiece(self, prevPos, position, name="X"):
+        forConnect = list(map(lambda x: (x, (x[0] - position[0], x[1] - position[1])),
+                                     self.createManhattan(position, 1)))
+        forConnect = list(filter(lambda x: x[0][0] + x[1][0] > 0 and x[0][0] + x[1][0] <= self.n and x[0][1] + x[1][1] > 0 and x[0][1] + x[1][1] <= self.m, forConnect))
+        forPrevConnect = list(map(lambda x: (x, (x[0] - prevPos[0], x[1] - prevPos[1])),
+                                     self.createManhattan(prevPos, 1)))
+        forPrevConnect = list(filter(lambda x: x[0][0] + x[1][0] > 0 and x[0][0] + x[1][0] <= self.n and x[0][1] + x[1][1] > 0 and x[0][1] + x[1][1] <= self.m, forPrevConnect))
         
-    def createManhattanGeneric(self, currentPos, n):
-        return [(x, y) for x in range(-2, 3) for y in range(-2, 3) if currentPos[0] +
-                                     x >= 0 and currentPos[0] + x < self.n and currentPos[1] + y >= 0 and currentPos[1] + y < self.m and abs(x) + abs(y) == n]
-    def moveH(self, currentPos, followedPos):
-            if followedPos[0] == currentPos[0]:
-                
-                return followedPos[0] == currentPos[0]
-
-    # def moveV(self, currentPos, followedPos):
-    #     return followedPos[1] == currentPos[1]
-    
-    def setGamePiece(self, name, position):
-        forConnect = self.createManhattanGeneric(position, 1)
+        forPrevDisconnect = self.createManhattanGeneric(prevPos, 2)
+        forPrevDisconnect = list(zip([prevPos]*len(forPrevDisconnect), forPrevDisconnect))
         forDisconnect = self.createManhattanGeneric(position, 2)
-        forDisconnect += zip(list(position)*len(forDisconnect), forDisconnect)
-        for i in range (0, self.n):
-            ssasdsa = 5
+        forDisconnect = list(zip([position]*len(forDisconnect), forDisconnect))
+        
+        if name == "X":
+            self.disconnectO(forDisconnect + forPrevConnect)
+            self.connectO(forConnect + forPrevDisconnect)
+        else:
+            self.disconnectX(forDisconnect + forPrevConnect)
+            self.connectX(forConnect + forPrevDisconnect)
             
-    def disconnect(self, vals):
+    def disconnect(self, vals, w=None):
         for (x, y) in vals:
             self.fields[x[0]-1][x[1]-1].disconnect(
-                self.fields[x[0]-1 + y[0]][x[1]-1 + y[1]])
+                self.fields[x[0]-1 + y[0]][x[1]-1 + y[1]], w)
 
     def connect(self, vals):
         for (x, y) in vals:
@@ -182,6 +165,23 @@ class Table:
             self.fields[x[0] - 1][x[1] - 1].connectO(
                 self.fields[x[0] - 1 + y[0]][x[1] - 1 + y[1]])
             
-    def areConnected(self, currentPos, followedPos):
-        return (followedPos[0] - 1, followedPos[1] - 1) in self.fields[currentPos[0] - 1][currentPos[1] - 1].connected
+    def isCorrectBlueWall(self, pos):
+        return not (pos in self.greenWalls or [x for x in [(pos[0], pos[1] - 1), pos, (pos[0], pos[1] + 1)] if x in self.blueWalls])
 
+    def isCorrectGreenWall(self, pos):
+        return not (pos in self.blueWalls or [x for x in [(pos[0] - 1, pos[1]), pos, (pos[0] + 1, pos[1])] if x in self.greenWalls])
+            
+    def areConnected(self, currentPos, followedPos, name="X"):
+        if name == "X":
+            return (followedPos[0] - 1, followedPos[1] - 1) in self.fields[currentPos[0] - 1][currentPos[1] - 1].connectedX
+        else:
+            return (followedPos[0] - 1, followedPos[1] - 1) in self.fields[currentPos[0] - 1][currentPos[1] - 1].connectedO
+        
+    def move(self, name, currentPos, nextPos, wall=None):
+        if wall:
+            if wall[0] == "Z":
+                self.setGreenWall((wall[1], wall[2]))
+            if wall[0] == "P":
+                self.setBlueWall((wall[1], wall[2]))
+        self.setGamePiece(currentPos, nextPos, name)
+        self.view.move(name, currentPos, nextPos, wall)
