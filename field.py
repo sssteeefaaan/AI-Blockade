@@ -1,21 +1,14 @@
 class Field:
-    def __init__(self, i, j, connected, initialFor=None):
+    def __init__(self, i, j, connectedX, connectedO, initialFor=None):
         self.i = i
         self.j = j
         self.initialFor = initialFor
-        self.connectedX = set()
-        self.connectedO = set()
-        for c in connected:
-            self.connectedX.add(c)
-            self.connectedO.add(c)
-        
-    # ako je initialForX onda sve susede te pozicije dodajemo O, i suprotno za initalForO 
-    # ako je initialForX onda iz connectedX izbaci putem disconnect f-je (sve susede iz manhattan pattern-a)
+        self.connectedX = set([x for x in connectedX])
+        self.connectedO = set([o for o in connectedO])
 
     def connect(self, f):
         self.connectX(f)
         self.connectO(f)
-
 
     def disconnect(self, f):
         self.disconnectX(f)
