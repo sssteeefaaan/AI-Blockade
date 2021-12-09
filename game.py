@@ -1,11 +1,11 @@
 from player import Player
 from table import Table
-from traceback import print_stack
 
 
 class Game:
-    def __init__(self, n=11, m=14, initial={(4, 4): 'X', (8, 4): 'X', (4, 11): 'O', (8, 11): 'O'}, greenWall="\u01c1", blueWall="\u2550", rowSep="\u23AF"):
-        self.table = Table(n, m, initial, greenWall, blueWall, rowSep)
+    def __init__(self, n=11, m=14, initial={(4, 4): 'X', (8, 4): 'X', (4, 11): 'O', (8, 11): 'O'}, wallNumb=9, greenWall="\u01c1", blueWall="\u2550", rowSep="\u23AF"):
+        self.table = Table(n, m, initial, wallNumb, greenWall, blueWall, rowSep)
+        self.wallNumb = wallNumb
         self.human = None
         self.computer = None
         self.next = None
@@ -16,18 +16,17 @@ class Game:
             try:
                 match input("X/o?\n"):
                     case ("X" | "x"):
-                        self.human = Player(True, False)
+                        self.human = Player(True, False, self.wallNumb)
                         self.next = self.human
-                        self.computer = Player(False, True)
+                        self.computer = Player(False, True, self.wallNumb)
                     case ("O" | "o"):
-                        self.computer = Player(True, True)
+                        self.computer = Player(True, True, self.wallNumb)
                         self.next = self.computer
-                        self.human = Player(False, False)
+                        self.human = Player(False, False, self.wallNumb)
                     case _:
                         raise Exception("Invalid player selection input!")
             except Exception as e:
                 print(e)
-                print_stack()
 
         self.play()
 
@@ -35,7 +34,7 @@ class Game:
         while not self.winner:
             try:
                 move = self.parseMove(input(
-                    f"{self.next.name} is on the move!\n{'*'*10}\nMoves are in the form '(\\[[XxOo] [1-2]\] \\[[1-n] [1-m]\\]){'{1}'}( \\[[Zz] [1-n] [1-(m-1)]|[Pp] [1-(n-1)] [1-m]\\])?'\n{'*'*10}\n"))
+                    f"{self.next.name} is on the move!\n"))
                 if move and self.validation(move):
                     self.table.move(self.next.name, self.next.move(
                         move[0][1], move[1], move[2]), move[1], move[2])
@@ -43,7 +42,6 @@ class Game:
                     self.checkState()
             except Exception as e:
                 print(e)
-                print_stack()
         print(f"{self.winner.name} won! Congrats!")
 
     def parseMove(self, stream):
@@ -67,7 +65,6 @@ class Game:
             return ret
         except Exception as e:
             print(e)
-            print_stack()
             return []
 
     def validation(self, move):
@@ -88,39 +85,45 @@ class Game:
                 raise Exception("Can't step on your opponent!")
             if move[2]:
                 if move[2][0] == "Z":
+                    if self.next.noGreenWalls < 1:
+                        raise Exception(
+                            "You don't have any green walls left to place...")
                     if move[2][1] > self.table.n-1 or move[2][1] < 1:
                         raise Exception("Green wall row index out of bounds!")
                     if move[2][2] > self.table.m or move[2][2] < 1:
                         raise Exception("Wall column index out of bounds!")
-                    if not self.table.checkGreenWall((move[2][1], move[2][2])):
+                    if not self.table.isCorrectGreenWall((move[2][1], move[2][2])):
                         raise Exception(
                             "Green wall cannot be set on the given position!")
                 elif move[2][0] == "P":
+                    if self.next.noGreenWalls < 1:
+                        raise Exception(
+                            "You don't have any blue walls left to place...")
                     if move[2][1] > self.table.n or move[2][1] < 1:
                         raise Exception("Wall row index out of bounds!")
                     if move[2][2] > self.table.m-1 or move[2][2] < 1:
                         raise Exception(
                             "Blue wall column index out of bounds!")
-                    if not self.table.checkBlueWall((move[2][1], move[2][2])):
+                    if not self.table.isCorrectBlueWall((move[2][1], move[2][2])):
                         raise Exception(
                             "Blue wall cannot be set on the given position!")
             # if not self.table.manhattan(self.next.firstGP.position if move[0][1] == 1 else self.next.secondGP.position, move[1]):
             #     raise Exception("Invalid move!")
 
-            #Ovo nam treba kad mu je zauzeto mesto pa mora za po jedan da se skloni
+            # Ovo nam treba kad mu je zauzeto mesto pa mora za po jedan da se skloni
 
             # if not (self.table.moveH(self.next.firstGP.position if move[0][1] == 1 else self.next.secondGP.position, move[1]) and self.table.manhattan(self.next.firstGP.position if move[0][1] == 1 else self.next.secondGP.position, move[1]) == 2):
             #     raise Exception("Invalid move!")
             # elif not (self.table.moveV(self.next.firstGP.position if move[0][1] == 1 else self.next.secondGP.position, move[1]) and self.table.manhattan(self.next.firstGP.position if move[0][1] == 1 else self.next.secondGP.position, move[1]) == 2):
             #     raise Exception("Invalid move!")
-            print(self.manhattan(self.next.firstGP.position, move[1]))
-            if not (self.table.areConnected(self.next.firstGP.position if move[0][1] == 1 else self.next.secondGP.position, move[1]) and (self.manhattan(self.next.firstGP.position, move[1]) == 2 if move[0][1] == 1 else self.manhattan(self.next.secondGP.position, move[1]) == 2)):
-                raise Exception("Invalid move!")
+            if self.manhattan(self.next.firstGP.position if move[0][1] == 1 else self.next.secondGP.position, move[1]) != 2:
+                raise Exception(
+                    "Invalid move! Only manhattan pattern moves allowed!")
+            if not self.table.areConnected(self.next.firstGP.position if move[0][1] == 1 else self.next.secondGP.position, move[1]):
+                raise Exception("Invalid move! Something's on the way...")
 
-            
         except Exception as e:
             print(e)
-            print_stack()
             return False
         return True
 
@@ -133,8 +136,37 @@ class Game:
     def manhattan(self, currentPos, followedPos):
         return abs(currentPos[0] - followedPos[0]) + abs(currentPos[1] - followedPos[1])
 
+
 def main():
-    g = Game()
+    n = m = ""
+    while not str.isdigit(n) or int(n) < 11 or int(n) > 22:
+        n = input(
+            "Input number of rows in the table (Empty for the default minimum value of 11, the max is 22): ")
+        n = n if n else "11"
+    while not str.isdigit(m) or int(m) < 14 or int(m) > 28:
+        m = input(
+            "Input number of columns in the table (Empty for the default minimum value of 14, the maximum is 28): ")
+        m = m if m else "14"
+    initial = {}
+    while len(initial.keys()) < 2:
+        temp = input(
+            f"Input {len(initial)+1}. initial position for X (Empty for the default value of ({4 if len(initial) == 0 else 8}, 4)): ")
+        temp = temp if temp else f"({4 if len(initial) == 0 else 8}, 4)"
+        initial[tuple(map(lambda x: int(x), temp.replace(
+            "(", "").replace(")", "").replace(",", "").split(" ")))] = "X"
+    while len(initial.keys()) < 4:
+        temp = input(
+            f"Input {len(initial)-1}. initial position for O (Empty for the default value of ({4 if len(initial)-1 == 1 else 8}, 11)): ")
+        temp = temp if temp else f"({4 if len(initial)-1 == 1 else 8}, 11)"
+        initial[tuple(map(lambda x: int(x), temp.replace(
+            "(", "").replace(")", "").replace(",", "").split(" ")))] = "O"
+    wallNumb = ""
+    while not str.isdigit(wallNumb) or int(wallNumb) < 9 or int(wallNumb) > 18:
+        wallNumb = input(
+            "Input the number of blue/green walls each player has (Empty for the default minimum value of 9, the max is 18): ")
+        wallNumb = wallNumb if wallNumb else "9"
+
+    g = Game(int(n), int(m), initial, int(wallNumb))
     g.start()
 
 

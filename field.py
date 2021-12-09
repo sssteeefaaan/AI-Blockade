@@ -14,7 +14,5 @@ class Field:
 
     def disconnect(self, f):
         if (f.i, f.j) in self.connected:
-            print(
-                f"Disconnect from ({self.i}, {self.j}) connection to ({f.i}, {f.j})")
             self.connected.remove((f.i, f.j))
             f.disconnect(self)

@@ -2,7 +2,7 @@ from gamePiece import GamePiece
 
 
 class Player:
-    def __init__(self, playsFirst=True, isComputer=False, noBlueWalls=9, noGreenWalls=9, initialPos1st=None, initialPos2nd=None):
+    def __init__(self, playsFirst=True, isComputer=False, wallNumb=9, initialPos1st=None, initialPos2nd=None):
         if playsFirst:
             self.home1 = initialPos1st if initialPos1st else (4, 4)
             self.home2 = initialPos2nd if initialPos2nd else (8, 4)
@@ -15,8 +15,8 @@ class Player:
         self.firstGP = GamePiece(self.home1)
         self.secondGP = GamePiece(self.home2)
 
-        self.noBlueWalls = noBlueWalls
-        self.noGreenWalls = noGreenWalls
+        self.noBlueWalls = wallNumb
+        self.noGreenWalls = wallNumb
 
         self.isComputer = isComputer
 
@@ -34,7 +34,6 @@ class Player:
                 self.noGreenWalls -= 1
             elif wall[0].upper() == "P":
                 self.noBlueWalls -= 1
-
         return prevPos
 
     def isWinner(self, positions):
