@@ -123,10 +123,10 @@ class Table:
                                      self.createManhattan(prevPos, 1)))
         forPrevConnect = list(filter(lambda x: x[0][0] + x[1][0] > 0 and x[0][0] + x[1][0] <= self.n and x[0][1] + x[1][1] > 0 and x[0][1] + x[1][1] <= self.m, forPrevConnect))
         
-        forPrevDisconnect = self.createManhattanGeneric(prevPos, 2)
-        forPrevDisconnect = list(zip([prevPos]*len(forPrevDisconnect), forPrevDisconnect))
         forDisconnect = self.createManhattanGeneric(position, 2)
         forDisconnect = list(zip([position]*len(forDisconnect), forDisconnect))
+        forPrevDisconnect = self.createManhattanGeneric(prevPos, 2)
+        forPrevDisconnect = list(zip([prevPos]*len(forPrevDisconnect), forPrevDisconnect))
         
         if name == "X":
             self.disconnectO(forDisconnect + forPrevConnect)
@@ -165,17 +165,24 @@ class Table:
             self.fields[x[0] - 1][x[1] - 1].connectO(
                 self.fields[x[0] - 1 + y[0]][x[1] - 1 + y[1]])
             
-    def isCorrectBlueWall(self, pos):
-        return not (pos in self.greenWalls or [x for x in [(pos[0], pos[1] - 1), pos, (pos[0], pos[1] + 1)] if x in self.blueWalls])
-
-    def isCorrectGreenWall(self, pos):
-        return not (pos in self.blueWalls or [x for x in [(pos[0] - 1, pos[1]), pos, (pos[0] + 1, pos[1])] if x in self.greenWalls])
-            
     def areConnected(self, currentPos, followedPos, name="X"):
         if name == "X":
             return (followedPos[0] - 1, followedPos[1] - 1) in self.fields[currentPos[0] - 1][currentPos[1] - 1].connectedX
         else:
             return (followedPos[0] - 1, followedPos[1] - 1) in self.fields[currentPos[0] - 1][currentPos[1] - 1].connectedO
+        
+    def isCorrectBlueWall(self, pos):
+            return not (pos in self.greenWalls or [x for x in [(pos[0], pos[1] - 1), pos, (pos[0], pos[1] + 1)] if x in self.blueWalls])
+
+    def isCorrectGreenWall(self, pos):
+        return not (pos in self.blueWalls or [x for x in [(pos[0] - 1, pos[1]), pos, (pos[0] + 1, pos[1])] if x in self.greenWalls])
+    
+    def createManhattan(self, currentPos, n):
+        return list(map(lambda x: (currentPos[0]+ x[0], currentPos[1] + x[1]), self.createManhattanGeneric(currentPos, n)))
+        
+    def createManhattanGeneric(self, currentPos, n):
+        return [(x, y) for x in range(-2, 3) for y in range(-2, 3) if currentPos[0] +
+                                     x >= 0 and currentPos[0] + x < self.n and currentPos[1] + y >= 0 and currentPos[1] + y < self.m and abs(x) + abs(y) == n]
         
     def move(self, name, currentPos, nextPos, wall=None):
         if wall:
