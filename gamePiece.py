@@ -4,5 +4,3 @@ class GamePiece:
     
     def move(self, position:tuple[int, int]):
         self.position = position
-
-    #initialPos prebaciti u Field, a ovde referenca 

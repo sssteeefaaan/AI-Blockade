@@ -20,8 +20,8 @@ class Table:
             self.fields.append([])
             for j in range(0, self.m):
                 self.fields[i].append(
-                    Field(i, j, set([(i+x, j+y) for x in range(-2, 3) for y in range(-2, 3) if i +
-                                     x >= 0 and i+x < self.n and j+y >= 0 and j+y < self.m and abs(x)+abs(y) == 2]), initial.get((i, j), None)))
+                    Field(i, j, set([(i + x, j + y) for x in range(-2, 3) for y in range(-2, 3) if i +
+                                     x >= 0 and i + x < self.n and j + y >= 0 and j + y < self.m and abs(x) + abs(y) == 2]), initial.get((i, j), None)))
 
         for pos in initial.keys():
             self.view.setPosition(pos[0], pos[1], initial[pos])
@@ -163,11 +163,19 @@ class Table:
                 self.setBlueWall((wall[1], wall[2]))
         self.view.move(name, currentPos, nextPos, wall)
 
+    def setGamePiece(self, name, position):
+        forConnect = []
+        forDisconnect = []
+        for i in range (0, self.n):
+            
+
+
     def areConnected(self, currentPos, followedPos):
         return (followedPos[0] - 1, followedPos[1] - 1) in self.fields[currentPos[0] - 1][currentPos[1] - 1].connected
 
-    def moveH(self, currentPos, followedPos):
-        return followedPos[0] == currentPos[0]
+    # def moveH(self, currentPos, followedPos):
+    #     return followedPos[0] == currentPos[0]
 
-    def moveV(self, currentPos, followedPos):
-        return followedPos[1] == currentPos[1]
+    # def moveV(self, currentPos, followedPos):
+    #     return followedPos[1] == currentPos[1]
+

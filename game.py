@@ -107,15 +107,6 @@ class Game:
                     if not self.table.isCorrectBlueWall((move[2][1], move[2][2])):
                         raise Exception(
                             "Blue wall cannot be set on the given position!")
-            # if not self.table.manhattan(self.next.firstGP.position if move[0][1] == 1 else self.next.secondGP.position, move[1]):
-            #     raise Exception("Invalid move!")
-
-            # Ovo nam treba kad mu je zauzeto mesto pa mora za po jedan da se skloni
-
-            # if not (self.table.moveH(self.next.firstGP.position if move[0][1] == 1 else self.next.secondGP.position, move[1]) and self.table.manhattan(self.next.firstGP.position if move[0][1] == 1 else self.next.secondGP.position, move[1]) == 2):
-            #     raise Exception("Invalid move!")
-            # elif not (self.table.moveV(self.next.firstGP.position if move[0][1] == 1 else self.next.secondGP.position, move[1]) and self.table.manhattan(self.next.firstGP.position if move[0][1] == 1 else self.next.secondGP.position, move[1]) == 2):
-            #     raise Exception("Invalid move!")
             if self.manhattan(self.next.firstGP.position if move[0][1] == 1 else self.next.secondGP.position, move[1]) != 2:
                 raise Exception(
                     "Invalid move! Only manhattan pattern moves allowed!")
