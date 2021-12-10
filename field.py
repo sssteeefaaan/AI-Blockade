@@ -1,7 +1,6 @@
 class Field:
-    def __init__(self, i, j, connectedX, connectedO, initialFor=None):
-        self.i = i
-        self.j = j
+    def __init__(self, position, connectedX, connectedO, initialFor=None):
+        self.position = position
         self.initialFor = initialFor
         self.connectedX = set([x for x in connectedX])
         self.connectedO = set([o for o in connectedO])
@@ -15,28 +14,28 @@ class Field:
         self.disconnectX(f, w)
         self.disconnectO(f, w)
         if w:
-            self.discWalls.add((f.i, f.j))
+            self.discWalls.add(f.position)
             if w=="Z":
-                self.discWalls.add((f.i+1, f.j))
+                self.discWalls.add((f.position[0]+1, f.position[1]))
             else:
-                self.discWalls.add((f.i, f.j+1))
+                self.discWalls.add((f.position[0], f.position[1]+1))
 
     def connectX(self, f):
-        if (f.i, f.j) not in self.connectedX | self.discWalls:
-            self.connectedX.add((f.i, f.j))
+        if f.position not in self.connectedX | self.discWalls:
+            self.connectedX.add(f.position)
             f.connectX(self)
 
     def disconnectX(self, f, w=None):
-        if (w!=None or (f.initialFor!="O" and self.initialFor!="O")) and (f.i, f.j) in self.connectedX:
-            self.connectedX.remove((f.i, f.j))
+        if (w!=None or (f.initialFor!="O" and self.initialFor!="O")) and f.position in self.connectedX:
+            self.connectedX.remove(f.position)
             f.disconnectX(self)
 
     def connectO(self, f):
-        if (f.i, f.j) not in self.connectedO | self.discWalls:
-            self.connectedO.add((f.i, f.j))
+        if f.position not in self.connectedO | self.discWalls:
+            self.connectedO.add(f.position)
             f.connectO(self)
 
     def disconnectO(self, f, w=None):
-        if (w!=None or (f.initialFor!="X" and self.initialFor!="X")) and (f.i, f.j) in self.connectedO:
-            self.connectedO.remove((f.i, f.j))
+        if (w!=None or (f.initialFor!="X" and self.initialFor!="X")) and f.position in self.connectedO:
+            self.connectedO.remove(f.position)
             f.disconnectO(self)

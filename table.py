@@ -26,7 +26,7 @@ class Table:
                     (i, j), 0, self.n-1, self.m-1, 2))
 
                 self.fields[i].append(
-                    Field(i, j, connectedX, connectedO, initial.get((i+1, j+1), None)))
+                    Field((i, j), connectedX, connectedO, initial.get((i+1, j+1), None)))
 
                 match initial.get((i+1, j+1), None):
                     case "X":
