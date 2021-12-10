@@ -18,36 +18,20 @@ class Game:
                 match input("X/o?\n"):
                     case ("X" | "x"):
                         self.X = Player(
-                            True, False, wallNumb, xPos[0], xPos[1])
-                        self.next = self.X
+                            "X", False, wallNumb, xPos[0], xPos[1])
                         self.O = Player(
-                            False, True, wallNumb, oPos[0], oPos[1])
+                            "O", True, wallNumb, oPos[0], oPos[1])
                     case ("O" | "o"):
                         self.O = Player(
-                            True, True, wallNumb, oPos[0], oPos[1])
-                        self.next = self.O
+                            "O", True, wallNumb, oPos[0], oPos[1])
                         self.X = Player(
-                            False, False, wallNumb, xPos[0], xPos[1])
+                            "X", False, wallNumb, xPos[0], xPos[1])
                     case _:
                         raise Exception("Invalid player selection input!")
             except Exception as e:
                 print(e)
-
+        self.next = self.X
         self.play()
-
-    def play(self):
-        while not self.winner:
-            try:
-                move = Game.parseMove(input(
-                    f"{self.next.name} is on the move!\n"))
-                if move and self.validation(move):
-                    self.table.move(self.next.name, self.next.move(
-                        move[0][1], move[1], move[2]), move[1], move[2])
-                    self.next = self.X if self.next.name == self.O.name else self.O
-                    self.checkState()
-            except Exception as e:
-                print(e)
-        print(f"{self.winner.name} won! Congrats!")
 
     def validation(self, move):
         try:
@@ -94,6 +78,20 @@ class Game:
             self.winner = self.O
         elif self.X.isWinner((self.O.firstGP.home, self.O.secondGP.home)):
             self.winner = self.X
+
+    def play(self):
+        while not self.winner:
+            try:
+                move = Game.parseMove(input(
+                    f"{self.next.name} is on the move!\n"))
+                if move and self.validation(move):
+                    self.table.move(self.next.name, self.next.move(
+                        move[0][1], move[1], move[2]), move[1], move[2])
+                    self.next = self.X if self.next.name == self.O.name else self.O
+                    self.checkState()
+            except Exception as e:
+                print(e)
+        print(f"{self.winner.name} won! Congrats!")
 
     @staticmethod
     def parseMove(stream):
