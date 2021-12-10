@@ -9,16 +9,16 @@ class View:
         self.blueWall = blueWall
 
         self.template = [
-            [" ",  *[(" {0:x}".format(i).upper())
-                     for i in range(1, m + 1)], "  "],
+            [" ",  *[(" " + (chr(j+48) if j < 10 else chr(j+55)))
+                     for j in range(1, m + 1)], "  "],
             [" ", *(" " + self.blueWall) * m, "  "],
-            *[list("{0:x}".format(j).upper() + self.greenWall + (" |") * (m - 1) + " " + self.greenWall +
-                   "{0:x}".format(j).upper() + "\n" + " " + (" " + rowSep) * m + "  ") for j in range(1, n)],
-            ["{0:x}".format(n).upper(), self.greenWall, *(" |") *
+            *[list((chr(i+48) if i < 10 else chr(i+55)) + self.greenWall + (" |") * (m - 1) + " " + self.greenWall +
+                   (chr(i+48) if i < 10 else chr(i+55)) + "\n" + " " + (" " + rowSep) * m + "  ") for i in range(1, n)],
+            [(chr(n+48) if n < 10 else chr(n+55)), self.greenWall, *(" |") *
              (m - 1), " ", self.greenWall, "{0:x}".format(n).upper()],
             [" ", *(" " + self.blueWall) * m, "  "],
-            [" ",  *[(" {0:x}".format(i).upper())
-                     for i in range(1, m + 1)], "  "],
+            [" ",  *[(" " + (chr(j+48) if j < 10 else chr(j+55)))
+                     for j in range(1, m + 1)], "  "],
             ["Number of walls:"],
             ["*X:"],
             [" -P: ", wallNumb],

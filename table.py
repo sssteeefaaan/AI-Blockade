@@ -7,10 +7,8 @@ class Table:
         self.n = n
         self.m = m
         self.view = View(n, m, wallNumb, greenWall, blueWall, rowSep)
-
         self.blueWalls = set()
         self.greenWalls = set()
-
         self.fields = []
         self.onInit(initial)
 
@@ -51,7 +49,6 @@ class Table:
         if self.isCorrectBlueWall(pos):
             self.blueWalls.add(pos)
             forDisconnect = []
-
             up1 = pos[0] - 1 > 0
             down1 = pos[0] + 1 <= self.n
             down2 = pos[0] + 2 <= self.n
@@ -87,7 +84,6 @@ class Table:
         if self.isCorrectGreenWall(pos):
             self.greenWalls.add(pos)
             forDisconnect = []
-
             up1 = pos[0] - 1 > 0
             down1 = pos[0] + 1 <= self.n
             down2 = pos[0] + 2 <= self.n
@@ -125,7 +121,6 @@ class Table:
                                   Table.createManhattan(prevPos, 1, self.n, self.m, 1)))
         forPrevConnect = list(filter(lambda x: x[0][0] + x[1][0] > 0 and x[0][0] + x[1][0] <=
                               self.n and x[0][1] + x[1][1] > 0 and x[0][1] + x[1][1] <= self.m, forPrevConnect))
-
         forDisconnect = Table.createManhattanGeneric(
             position, 1, self.n, self.m, 2)
         forDisconnect = list(zip([position]*len(forDisconnect), forDisconnect))
@@ -141,35 +136,35 @@ class Table:
             self.disconnectX(forDisconnect + forPrevConnect)
             self.connectX(forConnect + forPrevDisconnect)
 
-    def disconnect(self, vals, w=None):
-        for (x, y) in vals:
-            self.fields[x[0]-1][x[1]-1].disconnect(
-                self.fields[x[0]-1 + y[0]][x[1]-1 + y[1]], w)
-
     def connect(self, vals):
         for (x, y) in vals:
             self.fields[x[0] - 1][x[1] - 1].connect(
                 self.fields[x[0] - 1 + y[0]][x[1] - 1 + y[1]])
-
-    def disconnectX(self, vals):
-        for (x, y) in vals:
-            self.fields[x[0]-1][x[1]-1].disconnectX(
-                self.fields[x[0]-1 + y[0]][x[1]-1 + y[1]])
 
     def connectX(self, vals):
         for (x, y) in vals:
             self.fields[x[0] - 1][x[1] - 1].connectX(
                 self.fields[x[0] - 1 + y[0]][x[1] - 1 + y[1]])
 
-    def disconnectO(self, vals):
-        for (x, y) in vals:
-            self.fields[x[0]-1][x[1]-1].disconnectO(
-                self.fields[x[0]-1 + y[0]][x[1]-1 + y[1]])
-
     def connectO(self, vals):
         for (x, y) in vals:
             self.fields[x[0] - 1][x[1] - 1].connectO(
                 self.fields[x[0] - 1 + y[0]][x[1] - 1 + y[1]])
+            
+    def disconnect(self, vals, w=None):
+        for (x, y) in vals:
+            self.fields[x[0]-1][x[1]-1].disconnect(
+                self.fields[x[0]-1 + y[0]][x[1]-1 + y[1]], w)
+            
+    def disconnectX(self, vals):
+        for (x, y) in vals:
+            self.fields[x[0]-1][x[1]-1].disconnectX(
+                self.fields[x[0]-1 + y[0]][x[1]-1 + y[1]])
+            
+    def disconnectO(self, vals):
+        for (x, y) in vals:
+            self.fields[x[0]-1][x[1]-1].disconnectO(
+                self.fields[x[0]-1 + y[0]][x[1]-1 + y[1]])
 
     def areConnected(self, currentPos, followedPos, name="X"):
         if name == "X":
@@ -199,8 +194,8 @@ class Table:
     @staticmethod
     def createManhattanGeneric(currentPos, low, highN, highM, dStep=2):
         return [(x, y) for x in range(-2, 3) for y in range(-2, 3) if currentPos[0] +
-                x >= low and currentPos[0] + x <= highN and currentPos[1] + y > 0 and currentPos[1] + y <= highM and Table.manhattan((0, 0), (x, y), dStep)]
+                x >= low and currentPos[0] + x <= highN and currentPos[1] + y > 0 and currentPos[1] + y <= highM and Table.isManhattan((0, 0), (x, y), dStep)]
     
     @staticmethod
-    def manhattan(currentPos, followedPos, dStep):
+    def isManhattan(currentPos, followedPos, dStep):
         return abs(currentPos[0] - followedPos[0]) + abs(currentPos[1] - followedPos[1]) == dStep

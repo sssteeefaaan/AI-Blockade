@@ -1,7 +1,6 @@
 from player import Player
 from table import Table
 
-
 class Game:
     def __init__(self, n=11, m=14, initial={(4, 4): 'X', (8, 4): 'X', (4, 11): 'O', (8, 11): 'O'}, wallNumb=9, greenWall="\u01c1", blueWall="\u2550", rowSep="\u23AF"):
         self.table = Table(n, m, initial, wallNumb,
@@ -50,30 +49,6 @@ class Game:
                 print(e)
         print(f"{self.winner.name} won! Congrats!")
 
-    @staticmethod
-    def parseMove(stream):
-        try:
-            ret = []
-            m = stream.replace('[', '').replace(']', '').upper().split(' ')
-            if m[0] not in ["X", "O"]:
-                raise Exception("Invalid player ID!")
-            if m[1] not in ['1', '2']:
-                raise Exception("Invalid piece ID!")
-            ret += [[m[0], int(m[1], base=16)]]
-            if len(m) < 4:
-                raise Exception("Missing positional coordinates!")
-            ret += [tuple([int(x, base=16) for x in m[2:4]])]
-            if len(m) > 4:
-                if m[4] not in ["Z", "P"]:
-                    raise Exception("Invalid wall ID!")
-                ret += [[m[4], int(m[5], base=16), int(m[6], base=16)]]
-            else:
-                ret += [None]
-            return ret
-        except Exception as e:
-            print(e)
-            return []
-
     def validation(self, move):
         try:
             if self.next.name != move[0][0]:
@@ -120,6 +95,29 @@ class Game:
         elif self.X.isWinner((self.O.firstGP.home, self.O.secondGP.home)):
             self.winner = self.X
 
+    @staticmethod
+    def parseMove(stream):
+        try:
+            ret = []
+            m = stream.replace('[', '').replace(']', '').upper().split(' ')
+            if m[0] not in ["X", "O"]:
+                raise Exception("Invalid player ID!")
+            if m[1] not in ['1', '2']:
+                raise Exception("Invalid piece ID!")
+            ret += [[m[0], int(m[1])]]
+            if len(m) < 4:
+                raise Exception("Missing positional coordinates!")
+            ret += [tuple([ord(x)-55 if x>='A' else ord(x)-48 for x in m[2:4]])]
+            if len(m) > 4:
+                if m[4] not in ["Z", "P"]:
+                    raise Exception("Invalid wall ID!")
+                ret += [[m[4], *[ord(x)-55 if x>='A' else ord(x)-48 for x in m[5:7]]]]
+            else:
+                ret += [None]
+            return ret
+        except Exception as e:
+            print(e)
+            return []
 
 def main():
     n = m = ""
