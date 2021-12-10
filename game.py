@@ -35,20 +35,6 @@ class Game:
 
         self.play()
 
-    def play(self):
-        while not self.winner:
-            try:
-                move = Game.parseMove(input(
-                    f"{self.next.name} is on the move!\n"))
-                if move and self.validation(move):
-                    self.table.move(self.next.name, self.next.move(
-                        move[0][1], move[1], move[2]), move[1], move[2])
-                    self.next = self.X if self.next.name == self.O.name else self.O
-                    self.checkState()
-            except Exception as e:
-                print(e)
-        print(f"{self.winner.name} won! Congrats!")
-
     def validation(self, move):
         try:
             if self.next.name != move[0][0]:
@@ -94,6 +80,20 @@ class Game:
             self.winner = self.O
         elif self.X.isWinner((self.O.firstGP.home, self.O.secondGP.home)):
             self.winner = self.X
+
+    def play(self):
+        while not self.winner:
+            try:
+                move = Game.parseMove(input(
+                    f"{self.next.name} is on the move!\n"))
+                if move and self.validation(move):
+                    self.table.move(self.next.name, self.next.move(
+                        move[0][1], move[1], move[2]), move[1], move[2])
+                    self.next = self.X if self.next.name == self.O.name else self.O
+                    self.checkState()
+            except Exception as e:
+                print(e)
+        print(f"{self.winner.name} won! Congrats!")
 
     @staticmethod
     def parseMove(stream):
