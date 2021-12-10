@@ -819,7 +819,7 @@
 											"top": 549,
 											"width": 210.693359375,
 											"height": 20,
-											"text": "+position: tupple",
+											"text": "+position: tuple",
 											"horizontalAlignment": 0
 										},
 										{
@@ -1186,7 +1186,7 @@
 											"top": 909,
 											"width": 146.220703125,
 											"height": 20,
-											"text": "+position: tupple",
+											"text": "+position: tuple",
 											"horizontalAlignment": 0
 										},
 										{
@@ -1203,7 +1203,7 @@
 											"top": 931,
 											"width": 146.220703125,
 											"height": 20,
-											"text": "+home: tupple",
+											"text": "+home: tuple",
 											"horizontalAlignment": 0
 										}
 									],
@@ -3826,7 +3826,7 @@
 								"$ref": "AAAAAAF9pasjDONg1bw="
 							},
 							"name": "position",
-							"type": "tupple"
+							"type": "tuple"
 						},
 						{
 							"_type": "UMLAttribute",
@@ -3961,7 +3961,7 @@
 								"$ref": "AAAAAAF9pas05+OK/5Q="
 							},
 							"name": "position",
-							"type": "tupple"
+							"type": "tuple"
 						},
 						{
 							"_type": "UMLAttribute",
@@ -3970,7 +3970,7 @@
 								"$ref": "AAAAAAF9pas05+OK/5Q="
 							},
 							"name": "home",
-							"type": "tupple"
+							"type": "tuple"
 						}
 					]
 				},
