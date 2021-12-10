@@ -4,16 +4,16 @@ from gamePiece import GamePiece
 class Player:
     def __init__(self, playsFirst=True, isComputer=False, wallNumb=9, initialPos1st=None, initialPos2nd=None):
         if playsFirst:
-            self.home1 = initialPos1st if initialPos1st else (4, 4)
-            self.home2 = initialPos2nd if initialPos2nd else (8, 4)
+            initial1st = initialPos1st if initialPos1st else (4, 4)
+            initial2nd = initialPos2nd if initialPos2nd else (8, 4)
             self.name = "X"
         else:
-            self.home1 = initialPos1st if initialPos1st else (4, 11)
-            self.home2 = initialPos2nd if initialPos2nd else (8, 11)
+            initial1st = initialPos1st if initialPos1st else (4, 11)
+            initial2nd = initialPos2nd if initialPos2nd else (8, 11)
             self.name = "O"
 
-        self.firstGP = GamePiece(self.home1)
-        self.secondGP = GamePiece(self.home2)
+        self.firstGP = GamePiece(initial1st)
+        self.secondGP = GamePiece(initial2nd)
 
         self.noBlueWalls = wallNumb
         self.noGreenWalls = wallNumb

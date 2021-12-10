@@ -114,9 +114,9 @@ class Game:
         return True
 
     def checkState(self):
-        if self.O.isWinner((self.X.home1, self.X.home2)):
+        if self.O.isWinner((self.X.firstGP.home, self.X.secondGP.home)):
             self.winner = self.O
-        elif self.X.isWinner((self.O.home1, self.O.home2)):
+        elif self.X.isWinner((self.O.firstGP.home, self.O.secondGP.home)):
             self.winner = self.X
 
     def manhattan(self, currentPos, followedPos):
