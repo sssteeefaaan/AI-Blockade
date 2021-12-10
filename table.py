@@ -199,4 +199,8 @@ class Table:
     @staticmethod
     def createManhattanGeneric(currentPos, low, highN, highM, dStep=2):
         return [(x, y) for x in range(-2, 3) for y in range(-2, 3) if currentPos[0] +
-                x >= low and currentPos[0] + x <= highN and currentPos[1] + y > 0 and currentPos[1] + y <= highM and abs(x) + abs(y) == dStep]
+                x >= low and currentPos[0] + x <= highN and currentPos[1] + y > 0 and currentPos[1] + y <= highM and Table.manhattan((0, 0), (x, y), dStep)]
+    
+    @staticmethod
+    def manhattan(currentPos, followedPos, dStep):
+        return abs(currentPos[0] - followedPos[0]) + abs(currentPos[1] - followedPos[1]) == dStep

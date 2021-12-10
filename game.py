@@ -39,7 +39,7 @@ class Game:
     def play(self):
         while not self.winner:
             try:
-                move = self.parseMove(input(
+                move = Game.parseMove(input(
                     f"{self.next.name} is on the move!\n"))
                 if move and self.validation(move):
                     self.table.move(self.next.name, self.next.move(
@@ -50,7 +50,8 @@ class Game:
                 print(e)
         print(f"{self.winner.name} won! Congrats!")
 
-    def parseMove(self, stream):
+    @staticmethod
+    def parseMove(stream):
         try:
             ret = []
             m = stream.replace('[', '').replace(']', '').upper().split(' ')
@@ -118,9 +119,6 @@ class Game:
             self.winner = self.O
         elif self.X.isWinner((self.O.firstGP.home, self.O.secondGP.home)):
             self.winner = self.X
-
-    def manhattan(self, currentPos, followedPos):
-        return abs(currentPos[0] - followedPos[0]) + abs(currentPos[1] - followedPos[1])
 
 
 def main():
