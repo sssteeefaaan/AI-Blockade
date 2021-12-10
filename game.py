@@ -6,8 +6,8 @@ class Game:
     def __init__(self, n=11, m=14, initial={(4, 4): 'X', (8, 4): 'X', (4, 11): 'O', (8, 11): 'O'}, wallNumb=9, greenWall="\u01c1", blueWall="\u2550", rowSep="\u23AF"):
         self.table = Table(n, m, initial, wallNumb,
                            greenWall, blueWall, rowSep)
-        self.human = None
-        self.computer = None
+        self.X = None
+        self.O = None
         self.next = None
         self.winner = None
 
@@ -18,16 +18,16 @@ class Game:
                 oPos = [o for o in initial.keys() if initial[o] == "O"]
                 match input("X/o?\n"):
                     case ("X" | "x"):
-                        self.human = Player(
+                        self.X = Player(
                             True, False, wallNumb, xPos[0], xPos[1])
-                        self.next = self.human
-                        self.computer = Player(
+                        self.next = self.X
+                        self.O = Player(
                             False, True, wallNumb, oPos[0], oPos[1])
                     case ("O" | "o"):
-                        self.computer = Player(
+                        self.O = Player(
                             True, True, wallNumb, oPos[0], oPos[1])
-                        self.next = self.computer
-                        self.human = Player(
+                        self.next = self.O
+                        self.X = Player(
                             False, False, wallNumb, xPos[0], xPos[1])
                     case _:
                         raise Exception("Invalid player selection input!")
@@ -44,7 +44,7 @@ class Game:
                 if move and self.validation(move):
                     self.table.move(self.next.name, self.next.move(
                         move[0][1], move[1], move[2]), move[1], move[2])
-                    self.next = self.human if self.next.name == self.computer.name else self.computer
+                    self.next = self.X if self.next.name == self.O.name else self.O
                     self.checkState()
             except Exception as e:
                 print(e)
@@ -114,10 +114,10 @@ class Game:
         return True
 
     def checkState(self):
-        if self.computer.isWinner((self.human.home1, self.human.home2)):
-            self.winner = self.computer
-        elif self.human.isWinner((self.computer.home1, self.computer.home2)):
-            self.winner = self.human
+        if self.O.isWinner((self.X.home1, self.X.home2)):
+            self.winner = self.O
+        elif self.X.isWinner((self.O.home1, self.O.home2)):
+            self.winner = self.X
 
     def manhattan(self, currentPos, followedPos):
         return abs(currentPos[0] - followedPos[0]) + abs(currentPos[1] - followedPos[1])

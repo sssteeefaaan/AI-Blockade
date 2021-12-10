@@ -6,7 +6,6 @@ class Field:
         self.connectedX = set([x for x in connectedX])
         self.connectedO = set([o for o in connectedO])
         self.discWalls = set()
-        print((i,j))
 
     def connect(self, f):
         self.connectX(f)

@@ -167,7 +167,6 @@ class Table:
                 self.fields[x[0]-1 + y[0]][x[1]-1 + y[1]])
 
     def connectO(self, vals):
-        print("Connect O:", vals)
         for (x, y) in vals:
             self.fields[x[0] - 1][x[1] - 1].connectO(
                 self.fields[x[0] - 1 + y[0]][x[1] - 1 + y[1]])
