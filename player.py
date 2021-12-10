@@ -2,15 +2,14 @@ from gamePiece import GamePiece
 
 
 class Player:
-    def __init__(self, playsFirst=True, isComputer=False, wallNumb=9, initialPos1st=None, initialPos2nd=None):
-        if playsFirst:
+    def __init__(self, name, isComputer=False, wallNumb=9, initialPos1st=None, initialPos2nd=None):
+        if name == "X":
             initial1st = initialPos1st if initialPos1st else (4, 4)
             initial2nd = initialPos2nd if initialPos2nd else (8, 4)
-            self.name = "X"
         else:
             initial1st = initialPos1st if initialPos1st else (4, 11)
             initial2nd = initialPos2nd if initialPos2nd else (8, 11)
-            self.name = "O"
+        self.name = name
 
         self.firstGP = GamePiece(initial1st)
         self.secondGP = GamePiece(initial2nd)

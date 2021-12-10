@@ -18,21 +18,19 @@ class Game:
                 match input("X/o?\n"):
                     case ("X" | "x"):
                         self.X = Player(
-                            True, False, wallNumb, xPos[0], xPos[1])
-                        self.next = self.X
+                            "X", False, wallNumb, xPos[0], xPos[1])
                         self.O = Player(
-                            False, True, wallNumb, oPos[0], oPos[1])
+                            "O", True, wallNumb, oPos[0], oPos[1])
                     case ("O" | "o"):
                         self.O = Player(
-                            True, True, wallNumb, oPos[0], oPos[1])
-                        self.next = self.O
+                            "O", True, wallNumb, oPos[0], oPos[1])
                         self.X = Player(
-                            False, False, wallNumb, xPos[0], xPos[1])
+                            "X", False, wallNumb, xPos[0], xPos[1])
                     case _:
                         raise Exception("Invalid player selection input!")
             except Exception as e:
                 print(e)
-
+        self.next = self.X
         self.play()
 
     def validation(self, move):
