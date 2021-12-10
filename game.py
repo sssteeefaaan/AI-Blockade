@@ -84,6 +84,8 @@ class Game:
                 raise Exception("Can't step on your home!")
             if move[1] in ([self.human.firstGP.position, self.human.secondGP.position] if self.next == self.computer else [self.computer.firstGP.position, self.computer.secondGP.position]):
                 raise Exception("Can't step on your opponent!")
+            if not move[2] and self.human.noBlueWalls + self.human.noGreenWalls > 0 and self.computer.noBlueWalls + self.computer.noGreenWalls > 0:
+                raise Exception("You didn't put up a wall!")
             if move[2]:
                 if move[2][0] == "Z":
                     if self.next.noGreenWalls < 1:
@@ -148,7 +150,7 @@ def main():
     while len(initial.keys()) < 4:
         temp = input(
             f"Input {len(initial)-1}. initial position for O (Empty for the default value of ({4 if len(initial)-1 == 1 else 8}, 11)): ")
-        temp = temp if temp else f"({4 if len(initial)-1 == 1 else 8}, 10)"
+        temp = temp if temp else f"({4 if len(initial)-1 == 1 else 8}, 11)"
         initial[tuple(map(lambda x: int(x), temp.replace(
             "(", "").replace(")", "").replace(",", "").split(" ")))] = "O"
     wallNumb = ""

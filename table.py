@@ -20,8 +20,6 @@ class Table:
             for j in range(0, self.m):
                 connectedX = set(self.createManhattan((i, j), 2))
                 connectedO = set(self.createManhattan((i, j), 2))
-                # ako je initialForX onda sve susede te pozicije dodajemo O, i suprotno za initalForO 
-                # ako je initialForX onda iz connectedX izbaci putem disconnect f-je (sve susede iz manhattan pattern-a)
                 self.fields[i].append(
                     Field(i, j, connectedX, connectedO, initial.get((i, j), None)))
 
@@ -134,6 +132,13 @@ class Table:
         else:
             self.disconnectX(forDisconnect + forPrevConnect)
             self.connectX(forConnect + forPrevDisconnect)
+
+    def createManhattan(self, currentPos, n):
+        return list(map(lambda x: (currentPos[0]+ x[0], currentPos[1] + x[1]), self.createManhattanGeneric(currentPos, n)))
+        
+    def createManhattanGeneric(self, currentPos, n):
+        return [(x, y) for x in range(-2, 3) for y in range(-2, 3) if currentPos[0] +
+                                     x >= 0 and currentPos[0] + x < self.n and currentPos[1] + y >= 0 and currentPos[1] + y < self.m and abs(x) + abs(y) == n]
             
     def disconnect(self, vals, w=None):
         for (x, y) in vals:
@@ -176,13 +181,6 @@ class Table:
 
     def isCorrectGreenWall(self, pos):
         return not (pos in self.blueWalls or [x for x in [(pos[0] - 1, pos[1]), pos, (pos[0] + 1, pos[1])] if x in self.greenWalls])
-    
-    def createManhattan(self, currentPos, n):
-        return list(map(lambda x: (currentPos[0]+ x[0], currentPos[1] + x[1]), self.createManhattanGeneric(currentPos, n)))
-        
-    def createManhattanGeneric(self, currentPos, n):
-        return [(x, y) for x in range(-2, 3) for y in range(-2, 3) if currentPos[0] +
-                                     x >= 0 and currentPos[0] + x < self.n and currentPos[1] + y >= 0 and currentPos[1] + y < self.m and abs(x) + abs(y) == n]
         
     def move(self, name, currentPos, nextPos, wall=None):
         if wall:

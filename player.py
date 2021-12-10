@@ -29,6 +29,9 @@ class Player:
             prevPos = self.secondGP.position
             self.secondGP.position = positon
 
+        if self.noGreenWalls + self.noBlueWalls < 0:
+            wall = None
+            
         if wall != None:
             if wall[0].upper() == "Z":
                 self.noGreenWalls -= 1
