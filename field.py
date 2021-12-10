@@ -5,8 +5,8 @@ class Field:
         self.initialFor = initialFor
         self.connectedX = set([x for x in connectedX])
         self.connectedO = set([o for o in connectedO])
-        
         self.discWalls = set()
+        print((i,j))
 
     def connect(self, f):
         self.connectX(f)
@@ -16,11 +16,11 @@ class Field:
         self.disconnectX(f, w)
         self.disconnectO(f, w)
         if w:
-            self.discWalls.add((f.i,f.j))
+            self.discWalls.add((f.i, f.j))
             if w=="Z":
-                self.discWalls.add((f.i+1,f.j))
+                self.discWalls.add((f.i+1, f.j))
             else:
-                self.discWalls.add((f.i,f.j+1))
+                self.discWalls.add((f.i, f.j+1))
 
     def connectX(self, f):
         if (f.i, f.j) not in self.connectedX | self.discWalls:
@@ -28,7 +28,7 @@ class Field:
             f.connectX(self)
 
     def disconnectX(self, f, w=None):
-        if (f.i, f.j) in self.connectedX:
+        if (w!=None or (f.initialFor!="O" and self.initialFor!="O")) and (f.i, f.j) in self.connectedX:
             self.connectedX.remove((f.i, f.j))
             f.disconnectX(self)
 
@@ -38,8 +38,6 @@ class Field:
             f.connectO(self)
 
     def disconnectO(self, f, w=None):
-        if (f.i, f.j) in self.connectedO:
+        if (w!=None or (f.initialFor!="X" and self.initialFor!="X")) and (f.i, f.j) in self.connectedO:
             self.connectedO.remove((f.i, f.j))
             f.disconnectO(self)
-
-    

@@ -4,7 +4,8 @@ from table import Table
 
 class Game:
     def __init__(self, n=11, m=14, initial={(4, 4): 'X', (8, 4): 'X', (4, 11): 'O', (8, 11): 'O'}, wallNumb=9, greenWall="\u01c1", blueWall="\u2550", rowSep="\u23AF"):
-        self.table = Table(n, m, initial, wallNumb, greenWall, blueWall, rowSep)
+        self.table = Table(n, m, initial, wallNumb,
+                           greenWall, blueWall, rowSep)
         self.human = None
         self.computer = None
         self.next = None
@@ -13,17 +14,21 @@ class Game:
     def start(self, wallNumb, initial):
         while self.next is None:
             try:
-                xPos = [x for x in initial.keys() if initial[x]=="X"]
-                oPos = [o for o in initial.keys() if initial[o]=="O"]
+                xPos = [x for x in initial.keys() if initial[x] == "X"]
+                oPos = [o for o in initial.keys() if initial[o] == "O"]
                 match input("X/o?\n"):
                     case ("X" | "x"):
-                        self.human = Player(True, False, wallNumb, xPos[0], xPos[1])
+                        self.human = Player(
+                            True, False, wallNumb, xPos[0], xPos[1])
                         self.next = self.human
-                        self.computer = Player(False, True, wallNumb, oPos[0], oPos[1])
+                        self.computer = Player(
+                            False, True, wallNumb, oPos[0], oPos[1])
                     case ("O" | "o"):
-                        self.computer = Player(True, True, wallNumb, oPos[0], oPos[1])
+                        self.computer = Player(
+                            True, True, wallNumb, oPos[0], oPos[1])
                         self.next = self.computer
-                        self.human = Player(False, False, wallNumb, xPos[0], xPos[1])
+                        self.human = Player(
+                            False, False, wallNumb, xPos[0], xPos[1])
                     case _:
                         raise Exception("Invalid player selection input!")
             except Exception as e:
@@ -80,21 +85,17 @@ class Game:
                 raise Exception("You're already on that position!")
             if move[1] == (self.next.firstGP.position if move[0][1] == 2 else self.next.secondGP.position):
                 raise Exception("Can't step on your pieces!")
-            if move[1] in [self.next.firstGP.position, self.next.secondGP.position]:
-                raise Exception("Can't step on your home!")
-            if move[1] in ([self.human.firstGP.position, self.human.secondGP.position] if self.next == self.computer else [self.computer.firstGP.position, self.computer.secondGP.position]):
-                raise Exception("Can't step on your opponent!")
-            if not move[2] and self.human.noBlueWalls + self.human.noGreenWalls > 0 and self.computer.noBlueWalls + self.computer.noGreenWalls > 0:
+            if not move[2] and self.next.noBlueWalls + self.next.noGreenWalls > 0:
                 raise Exception("You didn't put up a wall!")
             if move[2]:
+                if move[2][1] > self.table.n-1 or move[2][1] < 1:
+                        raise Exception("Wall row index out of bounds!")
+                if move[2][2] > self.table.m-1 or move[2][2] < 1:
+                    raise Exception("Wall column index out of bounds!")
                 if move[2][0] == "Z":
                     if self.next.noGreenWalls < 1:
                         raise Exception(
                             "You don't have any green walls left to place...")
-                    if move[2][1] > self.table.n-1 or move[2][1] < 1:
-                        raise Exception("Green wall row index out of bounds!")
-                    if move[2][2] > self.table.m or move[2][2] < 1:
-                        raise Exception("Wall column index out of bounds!")
                     if not self.table.isCorrectGreenWall((move[2][1], move[2][2])):
                         raise Exception(
                             "Green wall cannot be set on the given position!")
@@ -102,19 +103,11 @@ class Game:
                     if self.next.noGreenWalls < 1:
                         raise Exception(
                             "You don't have any blue walls left to place...")
-                    if move[2][1] > self.table.n or move[2][1] < 1:
-                        raise Exception("Wall row index out of bounds!")
-                    if move[2][2] > self.table.m-1 or move[2][2] < 1:
-                        raise Exception(
-                            "Blue wall column index out of bounds!")
                     if not self.table.isCorrectBlueWall((move[2][1], move[2][2])):
                         raise Exception(
                             "Blue wall cannot be set on the given position!")
-            # if self.manhattan(self.next.firstGP.position if move[0][1] == 1 else self.next.secondGP.position, move[1]) != 2:
-            #     raise Exception(
-            #         "Invalid move! Only manhattan pattern moves allowed!")
             if not self.table.areConnected(self.next.firstGP.position if move[0][1] == 1 else self.next.secondGP.position, move[1], move[0][0]):
-                raise Exception("Invalid move! Something's on the way...")
+                raise Exception("Invalid move!")
         except Exception as e:
             print(e)
             return False
