@@ -40,32 +40,24 @@ class Table:
             right2 = pos[1] + 2 <= self.m
 
             if down1:
-                # x6 gubi vezu sa x10
                 forDisconnect += [(pos, (1, 0))]
                 if right1:
-                    # x6 gubi vezu sa x11
                     forDisconnect += [(pos, (1, 1))]
-                    # x7 gubi vezu sa x10, x11
                     forDisconnect += [((pos[0], pos[1] + 1), (1, -1)),
                                       ((pos[0], pos[1] + 1), (1, 0))]
                     if down2:
-                        # x7 gubi vezu sa x15
                         forDisconnect += [((pos[0], pos[1] + 1), (2, 0))]
                     if up1:
-                        # x11 gubi vezu sa x3
+
                         forDisconnect += [((pos[0] + 1, pos[1] + 1), (-2, 0))]
                 if up1:
-                    # x10 gubi vezu sa x2
                     forDisconnect += [((pos[0] + 1, pos[1]), (-2, 0))]
                 if down2:
-                    # x6 gubi vezu sa x14
                     forDisconnect += [(pos, (2, 0))]
                 if left1 and ((pos[0], pos[1]-2) in self.blueWalls or (pos[0]-1, pos[1]-1) in self.greenWalls):
-                    # x6 gubi vezu sa x9, x10 gubi vezu sa x5
                     forDisconnect += [(pos, (1, -1)),
                                       ((pos[0]+1, pos[1]), (-1, -1))]
                 if right2 and ((pos[0], pos[1]+2) in self.blueWalls or (pos[0]-1, pos[1]+1) in self.greenWalls):
-                    # x7 gubi vezu sa x12, x11 gubi vezu sa x8
                     forDisconnect += [((pos[0], pos[1]+1), (1, 1)),
                                       ((pos[0]+1, pos[1]+1), (-1, 1))]
 
@@ -84,32 +76,20 @@ class Table:
             right2 = pos[1] + 2 <= self.m
 
             if right1:
-                # x6 gubi vezu sa x7
                 forDisconnect += [(pos, (0, 1))]
                 if down1:
-                    # x6 gubi vezu sa x11
                     forDisconnect += [(pos, (1, 1))]
-                    # x10 gubi vezu sa x7, x11
                     forDisconnect += [((pos[0] + 1, pos[1]), (-1, 1)), ((pos[0] + 1, pos[1]), (0, 1))]
                     if left1:
-                        # x11 gubi vezu sa x9
                         forDisconnect += [((pos[0] + 1, pos[1] + 1), (0, -2))]
                     if down2 and ((pos[0]+2, pos[1]) in self.greenWalls or (pos[0]+1, pos[1]-1) in self.blueWalls):
-                        # x10 gubi vezu sa x15
-                        # x11 gubi vezu sa x14
                         forDisconnect += [((pos[0]+1, pos[1]), (1, 1)), ((pos[0] + 1, pos[1] + 1), (1, -1))]
-                if left1:
-                    # x7 gubi vezu sa x5
                     forDisconnect += [((pos[0], pos[1] + 1), (0, -2))]
                 if up1 and ((pos[0]-2, pos[1]) in self.greenWalls or (pos[0]-1, pos[1]-1) in self.blueWalls):
-                    # x6 gubi vezu sa x3
-                    # x7 gubi vezu sa x2
                     forDisconnect += [(pos, (-1, 1)), ((pos[0], pos[1] + 1), (-1, -1))]
             if right2:
-                # x6 gubi vezu sa x8
                 forDisconnect += [(pos, (0, 2))]
                 if down1:
-                    # x10 gubi vezu sa x12
                     forDisconnect += [((pos[0] + 1, pos[1]), (0, 2))]
             self.disconnect(forDisconnect, "Z")
 
