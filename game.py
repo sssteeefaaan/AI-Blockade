@@ -1,8 +1,10 @@
 from player import Player
 from table import Table
 
+
 class Game:
-    def __init__(self, n=11, m=14, initial={(4, 4): 'X', (8, 4): 'X', (4, 11): 'O', (8, 11): 'O'}, wallNumb=9, greenWall="\u01c1", blueWall="\u2550", rowSep="\u23AF"):
+    def __init__(self, n=11, m=14, initial={(4, 4): 'X', (8, 4): 'X', (4, 11): 'O', (8, 11): 'O'},
+                 wallNumb=9, greenWall="\u01c1", blueWall="\u2550", rowSep="\u23AF"):
         self.table = Table(n, m, initial, wallNumb,
                            greenWall, blueWall, rowSep)
         self.X = None
@@ -28,9 +30,9 @@ class Game:
                             "X", False, wallNumb, xPos[0], xPos[1])
                     case _:
                         raise Exception("Invalid player selection input!")
+                self.next = self.X
             except Exception as e:
                 print(e)
-        self.next = self.X
         self.play()
 
     def validation(self, move):
@@ -49,7 +51,7 @@ class Game:
                 raise Exception("You didn't put up a wall!")
             if move[2]:
                 if move[2][1] > self.table.n-1 or move[2][1] < 1:
-                        raise Exception("Wall row index out of bounds!")
+                    raise Exception("Wall row index out of bounds!")
                 if move[2][2] > self.table.m-1 or move[2][2] < 1:
                     raise Exception("Wall column index out of bounds!")
                 if move[2][0] == "Z":
@@ -60,7 +62,7 @@ class Game:
                         raise Exception(
                             "Green wall cannot be set on the given position!")
                 elif move[2][0] == "P":
-                    if self.next.noGreenWalls < 1:
+                    if self.next.noBlueWalls < 1:
                         raise Exception(
                             "You don't have any blue walls left to place...")
                     if not self.table.isCorrectBlueWall((move[2][1], move[2][2])):
@@ -105,17 +107,19 @@ class Game:
             ret += [[m[0], int(m[1])]]
             if len(m) < 4:
                 raise Exception("Missing positional coordinates!")
-            ret += [tuple([ord(x)-55 if x>='A' else ord(x)-48 for x in m[2:4]])]
+            ret += [tuple([ord(x)-55 if x >= 'A' else ord(x)-48 for x in m[2:4]])]
             if len(m) > 4:
                 if m[4] not in ["Z", "P"]:
                     raise Exception("Invalid wall ID!")
-                ret += [[m[4], *[ord(x)-55 if x>='A' else ord(x)-48 for x in m[5:7]]]]
+                ret += [[m[4], *[ord(x)-55 if x >=
+                                 'A' else ord(x)-48 for x in m[5:7]]]]
             else:
                 ret += [None]
             return ret
         except Exception as e:
             print(e)
             return []
+
 
 def main():
     n = m = ""
@@ -148,6 +152,7 @@ def main():
 
     g = Game(int(n), int(m), initial, int(wallNumb))
     g.start(int(wallNumb), initial)
+
 
 if __name__ == "__main__":
     main()

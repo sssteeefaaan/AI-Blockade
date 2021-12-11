@@ -29,13 +29,13 @@ class Table:
                 match initial.get((i+1, j+1), None):
                     case "X":
                         manGen = Table.createManhattanGeneric(
-                            (i, j), 1, self.n, self.m, 1)
-                        connectInitialO += list(zip([(i, j)]
+                            (i+1, j+1), 1, self.n, self.m, 1)
+                        connectInitialO += list(zip([(i+1, j+1)]
                                                 * len(manGen), manGen))
                     case "O":
                         manGen = Table.createManhattanGeneric(
-                            (i, j), 1, self.n, self.m, 1)
-                        connectInitialX += list(zip([(i, j)]
+                            (i+1, j+1), 1, self.n, self.m, 1)
+                        connectInitialX += list(zip([(i+1, j+1)]
                                                 * len(manGen), manGen))
 
         self.connectO(connectInitialO)
@@ -150,17 +150,17 @@ class Table:
         for (x, y) in vals:
             self.fields[x[0] - 1][x[1] - 1].connectO(
                 self.fields[x[0] - 1 + y[0]][x[1] - 1 + y[1]])
-            
+
     def disconnect(self, vals, w=None):
         for (x, y) in vals:
             self.fields[x[0]-1][x[1]-1].disconnect(
                 self.fields[x[0]-1 + y[0]][x[1]-1 + y[1]], w)
-            
+
     def disconnectX(self, vals):
         for (x, y) in vals:
             self.fields[x[0]-1][x[1]-1].disconnectX(
                 self.fields[x[0]-1 + y[0]][x[1]-1 + y[1]])
-            
+
     def disconnectO(self, vals):
         for (x, y) in vals:
             self.fields[x[0]-1][x[1]-1].disconnectO(
@@ -170,13 +170,18 @@ class Table:
         if name == "X":
             return (followedPos[0] - 1, followedPos[1] - 1) in self.fields[currentPos[0] - 1][currentPos[1] - 1].connectedX
         else:
+            print(self.fields[currentPos[0] - 1][currentPos[1] - 1].connectedO)
             return (followedPos[0] - 1, followedPos[1] - 1) in self.fields[currentPos[0] - 1][currentPos[1] - 1].connectedO
 
     def isCorrectBlueWall(self, pos):
-        return not (pos in self.greenWalls or [x for x in [(pos[0], pos[1] - 1), pos, (pos[0], pos[1] + 1)] if x in self.blueWalls])
+        return not (pos in self.greenWalls or
+                    [x for x in [(pos[0], pos[1] - 1), pos, (pos[0], pos[1] + 1)]
+                     if x in self.blueWalls])
 
     def isCorrectGreenWall(self, pos):
-        return not (pos in self.blueWalls or [x for x in [(pos[0] - 1, pos[1]), pos, (pos[0] + 1, pos[1])] if x in self.greenWalls])
+        return not (pos in self.blueWalls
+                    or [x for x in [(pos[0] - 1, pos[1]), pos, (pos[0] + 1, pos[1])]
+                        if x in self.greenWalls])
 
     def move(self, name, currentPos, nextPos, wall=None):
         if wall:
@@ -189,13 +194,16 @@ class Table:
 
     @staticmethod
     def createManhattan(currentPos, low, highN, highM, dStep):
-        return list(map(lambda x: (currentPos[0] + x[0], currentPos[1] + x[1]), Table.createManhattanGeneric(currentPos, low, highN, highM, dStep)))
+        return list(map(lambda x: (currentPos[0] + x[0], currentPos[1] + x[1]),
+                        Table.createManhattanGeneric(currentPos, low, highN, highM, dStep)))
 
     @staticmethod
     def createManhattanGeneric(currentPos, low, highN, highM, dStep=2):
         return [(x, y) for x in range(-2, 3) for y in range(-2, 3) if currentPos[0] +
-                x >= low and currentPos[0] + x <= highN and currentPos[1] + y > 0 and currentPos[1] + y <= highM and Table.isManhattan((0, 0), (x, y), dStep)]
-    
+                x >= low and currentPos[0] +
+                x <= highN and currentPos[1] + y > 0
+                and currentPos[1] + y <= highM and Table.isManhattan((0, 0), (x, y), dStep)]
+
     @staticmethod
     def isManhattan(currentPos, followedPos, dStep):
         return abs(currentPos[0] - followedPos[0]) + abs(currentPos[1] - followedPos[1]) == dStep
