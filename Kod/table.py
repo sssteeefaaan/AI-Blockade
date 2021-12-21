@@ -207,3 +207,9 @@ class Table:
     @staticmethod
     def isManhattan(currentPos, followedPos, dStep):
         return abs(currentPos[0] - followedPos[0]) + abs(currentPos[1] - followedPos[1]) == dStep
+
+    # ova funkcija bi trebalo da izvrsi validaciju za sve connected tako da ispita da li je canFinish_player True za polje position 
+    def isPathClosed(self, position, player):
+        return False
+
+    # ispraviti malo connect i disconnect (ref messanger)

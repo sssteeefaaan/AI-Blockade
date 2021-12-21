@@ -35,6 +35,7 @@ class Game:
                 print(e)
         self.play()
 
+    # ne da printa
     def validation(self, move):
         try:
             if self.next.name != move[0][0]:
@@ -119,6 +120,12 @@ class Game:
         except Exception as e:
             print(e)
             return []
+
+    # funkcija prvo za kopiranje trenutne tabele i odigravanja prosledjenog VALIDNOG poteza
+    # zatim funkicja koja vraca sve moguce poteze
+    # funkcija koja validira te poteze
+    # na kraju funkcija koja vrati listu svih tabela koje bi bile nakon ovih validno odigranih poteza
+    # kesiranje(maybe)?!?!?! 
 
 
 def main():

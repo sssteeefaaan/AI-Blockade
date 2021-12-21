@@ -1,10 +1,12 @@
 class Field:
-    def __init__(self, position, connectedX, connectedO, initialFor=None):
+    def __init__(self, position, connectedX, connectedO, canFinishX = (True, True), canFinishO = (True, True), initialFor=None):
         self.position = position
         self.initialFor = initialFor
         self.connectedX = set([x for x in connectedX])
         self.connectedO = set([o for o in connectedO])
         self.discWalls = set()
+        self.canFinishX = canFinishX
+        self.canFinishO = canFinishO
 
     def connect(self, f):
         self.connectX(f)
@@ -29,6 +31,9 @@ class Field:
         if (w!=None or (f.initialFor!="O" and self.initialFor!="O")) and f.position in self.connectedX:
             self.connectedX.remove(f.position)
             f.disconnectX(self)
+            # ukoliko se ukloni provera da li postoji bilo koje polje kojim bi moglo da se dodje do kraja
+            # ukoliko ne postoji flag se postavi na False i svim njegovim susedima se kaze da je on False (ovo je nova f-ja)
+            # ovo u oba disconnect-a, a za connect-ove slicna logika 
 
     def connectO(self, f):
         if f.position not in self.connectedO | self.discWalls:
