@@ -3,7 +3,8 @@ from table import Table
 
 
 class Game:
-    def __init__(self, n=11, m=14, initial={(4, 4): 'X', (8, 4): 'X', (4, 11): 'O', (8, 11): 'O'},
+    def __init__(self, n=11, m=14, initial={(4, 4): 'X', (8, 4): 'X', (4, 11): 'O', (8, 11
+    ): 'O'},
                  wallNumb=9, greenWall="\u01c1", blueWall="\u2550", rowSep="\u23AF"):
         self.table = Table(n, m, initial, wallNumb,
                            greenWall, blueWall, rowSep)

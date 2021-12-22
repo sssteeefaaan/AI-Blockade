@@ -113,14 +113,14 @@ class Table:
             self.disconnect(forDisconnect, "Z")
 
     def setGamePiece(self, prevPos, position, name="X"):
-        forConnect = list(map(lambda x: (x, (x[0] - position[0], x[1] - position[1])),
-                              Table.createManhattan(position, 1, self.n, self.m, 1)))
-        forConnect = list(filter(lambda x: x[0][0] + x[1][0] > 0 and x[0][0] + x[1][0] <=
-                          self.n and x[0][1] + x[1][1] > 0 and x[0][1] + x[1][1] <= self.m, forConnect))
-        forPrevConnect = list(map(lambda x: (x, (x[0] - prevPos[0], x[1] - prevPos[1])),
-                                  Table.createManhattan(prevPos, 1, self.n, self.m, 1)))
-        forPrevConnect = list(filter(lambda x: x[0][0] + x[1][0] > 0 and x[0][0] + x[1][0] <=
-                              self.n and x[0][1] + x[1][1] > 0 and x[0][1] + x[1][1] <= self.m, forPrevConnect))
+        forConnect = list(map(lambda x: ((position[0] - x[0] * 2, position[1] - x[1] * 2), x),
+                              Table.createManhattanGeneric(position, 1, self.n, self.m, 1)))
+        forConnect = list(filter(lambda x: 0 < x[0][0] + x[1][0] <=
+                           self.n and 0 < x[0][1] + x[1][1] <= self.m, forConnect))
+        forPrevConnect = list(map(lambda x: ((prevPos[0] - x[0] * 2, prevPos[1] - x[1] * 2), x),
+                                  Table.createManhattanGeneric(prevPos, 1, self.n, self.m, 1)))
+        forPrevConnect = list(filter(lambda x: 0 < x[0][0] + x[1][0] <=
+                            self.n and 0 < x[0][1] + x[1][1] <= self.m, forPrevConnect))
         forDisconnect = Table.createManhattanGeneric(
             position, 1, self.n, self.m, 2)
         forDisconnect = list(zip([position]*len(forDisconnect), forDisconnect))
@@ -131,25 +131,41 @@ class Table:
 
         if name == "X":
             self.disconnectO(forDisconnect + forPrevConnect)
-            self.connectO(forConnect + forPrevDisconnect)
+            self.connectO(forConnect, False, position)
+            self.connectO(forPrevDisconnect)
         else:
             self.disconnectX(forDisconnect + forPrevConnect)
-            self.connectX(forConnect + forPrevDisconnect)
+            self.connectX(forConnect, False, position)
+            self.connectX(forPrevDisconnect)
+
+       # return (forDisconnect + forPrevConnect, forConnect, forPrevDisconnect)
 
     def connect(self, vals):
         for (x, y) in vals:
             self.fields[x[0] - 1][x[1] - 1].connect(
                 self.fields[x[0] - 1 + y[0]][x[1] - 1 + y[1]])
 
-    def connectX(self, vals):
-        for (x, y) in vals:
-            self.fields[x[0] - 1][x[1] - 1].connectX(
-                self.fields[x[0] - 1 + y[0]][x[1] - 1 + y[1]])
+    def connectX(self, vals, mirrored = True, position = None):
+        if position:
+            con = [ (x, y) for (x, y) in vals if (x[0]-1, x[1]-1) in self.fields[position[0] -1] [position[1] - 1].connectedO ]
+            for (x, y) in con:
+                self.fields[x[0] - 1][x[1] - 1].connectX(
+                    self.fields[x[0] - 1 + y[0]][x[1] - 1 + y[1]], mirrored)
+        else:
+            for (x, y) in vals:
+                self.fields[x[0] - 1][x[1] - 1].connectX(
+                    self.fields[x[0] - 1 + y[0]][x[1] - 1 + y[1]], mirrored)
 
-    def connectO(self, vals):
-        for (x, y) in vals:
-            self.fields[x[0] - 1][x[1] - 1].connectO(
-                self.fields[x[0] - 1 + y[0]][x[1] - 1 + y[1]])
+    def connectO(self, vals, mirrored = True, position = None):
+        if position:
+            con = [ (x, y) for (x, y) in vals if (x[0]-1, x[1]-1) in self.fields[position[0] -1] [position[1] - 1].connectedX ]
+            for (x, y) in con:
+                self.fields[x[0] - 1][x[1] - 1].connectO(
+                    self.fields[x[0] - 1 + y[0]][x[1] - 1 + y[1]], mirrored)
+        else:
+            for (x, y) in vals:
+                self.fields[x[0] - 1][x[1] - 1].connectO(
+                    self.fields[x[0] - 1 + y[0]][x[1] - 1 + y[1]], mirrored)
 
     def disconnect(self, vals, w=None):
         for (x, y) in vals:
@@ -199,10 +215,8 @@ class Table:
 
     @staticmethod
     def createManhattanGeneric(currentPos, low, highN, highM, dStep=2):
-        return [(x, y) for x in range(-2, 3) for y in range(-2, 3) if currentPos[0] +
-                x >= low and currentPos[0] +
-                x <= highN and currentPos[1] + y > 0
-                and currentPos[1] + y <= highM and Table.isManhattan((0, 0), (x, y), dStep)]
+        return [(x, y) for x in range(-2, 3) for y in range(-2, 3) if low <= currentPos[0] +
+                x <= highN and low <= currentPos[1] + y <= highM and Table.isManhattan((0, 0), (x, y), dStep)]
 
     @staticmethod
     def isManhattan(currentPos, followedPos, dStep):
