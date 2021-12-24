@@ -42,6 +42,10 @@ class Table:
                         connectInitialX += list(filter(lambda x: 0 < x[0][0] + x[1][0] <=
                                                        self.n and 0 < x[0][1] + x[1][1] <= self.m, manGen))
 
+        for k in initial.keys():
+            self.setGamePiece(
+                (-100, -100), (k[0] + 1, k[1] + 1), initial.get(k)[0])
+
         self.connectO(connectInitialO, False)
         self.connectX(connectInitialX, False)
 
@@ -81,16 +85,15 @@ class Table:
                     if down2:
                         forDisconnect += [((pos[0], pos[1] + 1), (2, 0))]
                     if up1:
-
                         forDisconnect += [((pos[0] + 1, pos[1] + 1), (-2, 0))]
                 if up1:
                     forDisconnect += [((pos[0] + 1, pos[1]), (-2, 0))]
                 if down2:
                     forDisconnect += [(pos, (2, 0))]
-                if left1 and ((pos[0], pos[1]-2) in self.blueWalls or (pos[0]-1, pos[1]-1) in self.greenWalls):
+                if left1 and ((pos[0], pos[1]-2) in self.blueWalls or (pos[0]-1, pos[1]-1) in self.greenWalls or (pos[0]+1, pos[1]-1) in self.greenWalls):
                     forDisconnect += [(pos, (1, -1)),
                                       ((pos[0]+1, pos[1]), (-1, -1))]
-                if right2 and ((pos[0], pos[1]+2) in self.blueWalls or (pos[0]-1, pos[1]+1) in self.greenWalls):
+                if right2 and ((pos[0], pos[1]+2) in self.blueWalls or (pos[0]-1, pos[1]+1) in self.greenWalls or (pos[0]+1, pos[1]+1) in self.greenWalls):
                     forDisconnect += [((pos[0], pos[1]+1), (1, 1)),
                                       ((pos[0]+1, pos[1]+1), (-1, 1))]
 
@@ -115,11 +118,11 @@ class Table:
                                       ((pos[0] + 1, pos[1]), (0, 1))]
                     if left1:
                         forDisconnect += [((pos[0] + 1, pos[1] + 1), (0, -2))]
-                    if down2 and ((pos[0]+2, pos[1]) in self.greenWalls or (pos[0]+1, pos[1]-1) in self.blueWalls):
+                    if down2 and ((pos[0]+2, pos[1]) in self.greenWalls or (pos[0]+1, pos[1]-1) in self.blueWalls or (pos[0]+1, pos[1]+1) in self.blueWalls):
                         forDisconnect += [((pos[0]+1, pos[1]), (1, 1)),
                                           ((pos[0] + 1, pos[1] + 1), (1, -1))]
                     forDisconnect += [((pos[0], pos[1] + 1), (0, -2))]
-                if up1 and ((pos[0]-2, pos[1]) in self.greenWalls or (pos[0]-1, pos[1]-1) in self.blueWalls):
+                if up1 and ((pos[0]-2, pos[1]) in self.greenWalls or (pos[0]-1, pos[1]-1) in self.blueWalls or (pos[0]-1, pos[1]+1) in self.blueWalls):
                     forDisconnect += [(pos, (-1, 1)),
                                       ((pos[0], pos[1] + 1), (-1, -1))]
             if right2:

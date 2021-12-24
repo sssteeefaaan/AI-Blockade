@@ -80,21 +80,16 @@ class Field:
             self.connectedX.add(f.position)
             if mirrored:
                 f.connectX(self)
-            if f is self.nextHopToO[0][0]:
-                self.nextHopToO[0] = (None, 99999)
-                self.findNextHopToO(0)
-            if f is self.nextHopToO[1][0]:
-                self.nextHopToO[1] = (None, 99999)
-                self.findNextHopToO(1)
 
     def disconnectX(self, f, w=None):
         if (w != None or (f.initialFor != "O" and self.initialFor != "O")) and f.position in self.connectedX:
             self.connectedX.remove(f.position)
             f.disconnectX(self, w)
-            if f is self.nextHopToO[0][0]:
-                self.nextHopToO[0] = (None, 99999)
-            if f is self.nextHopToO[1][0]:
-                self.nextHopToO[1] = (None, 99999)
+            if self.initialFor != "O":
+                if f is self.nextHopToO[0][0]:
+                    self.nextHopToO[0] = (None, 99999)
+                if f is self.nextHopToO[1][0]:
+                    self.nextHopToO[1] = (None, 99999)
 
     def connectO(self, f, mirrored=True):
         if f.position not in self.connectedO | self.discWalls:
@@ -106,7 +101,8 @@ class Field:
         if (w != None or (f.initialFor != "X" and self.initialFor != "X")) and f.position in self.connectedO:
             self.connectedO.remove(f.position)
             f.disconnectO(self, w)
-            if f is self.nextHopToX[0][0]:
-                self.nextHopToX[0] = (None, 99999)
-            if f is self.nextHopToX[1][0]:
-                self.nextHopToX[1] = (None, 99999)
+            if self.initialFor != "X":
+                if f is self.nextHopToX[0][0]:
+                    self.nextHopToX[0] = (None, 99999)
+                if f is self.nextHopToX[1][0]:
+                    self.nextHopToX[1] = (None, 99999)
