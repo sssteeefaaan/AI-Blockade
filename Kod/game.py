@@ -6,30 +6,30 @@ class Game:
     def __init__(self, n=11, m=14, initial={(4, 4): "X1", (8, 4): "X2", (4, 11): "O1", (8, 11): "O2"}, wallNumb=9, greenWall="\u01c1", blueWall="\u2550", rowSep="\u23AF"):
         self.table = Table(n, m, initial, wallNumb,
                            greenWall, blueWall, rowSep)
-        self.X = None
-        self.O = None
+        self.table.X = None
+        self.table.O = None
         self.next = None
         self.winner = None
 
     def start(self, wallNumb, initial):
+        xPos = [x for x in initial.keys() if initial[x] in ["X1", "X2"]]
+        oPos = [o for o in initial.keys() if initial[o] in ["O1", "O2"]]
         while self.next is None:
-            xPos = [x for x in initial.keys() if initial[x] in ["X1", "X2"]]
-            oPos = [o for o in initial.keys() if initial[o] in ["O1", "O2"]]
             match input("X/o?\n"):
                 case ("X" | "x"):
-                    self.X = Player(
+                    self.table.X = Player(
                         "X", False, wallNumb, xPos[0], xPos[1])
-                    self.O = Player(
+                    self.table.O = Player(
                         "O", True, wallNumb, oPos[0], oPos[1])
                 case ("O" | "o"):
-                    self.O = Player(
+                    self.table.O = Player(
                         "O", True, wallNumb, oPos[0], oPos[1])
-                    self.X = Player(
+                    self.table.X = Player(
                         "X", False, wallNumb, xPos[0], xPos[1])
                 case _:
                     print("Invalid player selection input!")
                     continue
-            self.next = self.X
+            self.next = self.table.X
         self.play()
 
     def validation(self, move):
@@ -64,12 +64,6 @@ class Game:
             return (False, "Invalid move!")
         return (True, "Valid move!")
 
-    def checkState(self):
-        if self.O.isWinner((self.X.firstGP.home, self.X.secondGP.home)):
-            self.winner = self.O
-        elif self.X.isWinner((self.O.firstGP.home, self.O.secondGP.home)):
-            self.winner = self.X
-
     def play(self):
         while not self.winner:
             parsedMove = Game.parseMove(input(
@@ -80,8 +74,8 @@ class Game:
                 if validated[0]:
                     self.table.move(self.next.name, self.next.move(
                         move[0][1], move[1], move[2]), move[1], move[2])
-                    self.next = self.X if self.next.name == self.O.name else self.O
-                    self.checkState()
+                    self.next = self.table.X if self.next.name == self.table.O.name else self.table.O
+                    self.table.checkState()
                 else:
                     print(validated[1])
             else:

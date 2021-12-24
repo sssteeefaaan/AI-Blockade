@@ -10,6 +10,8 @@ class Table:
         self.blueWalls = set()
         self.greenWalls = set()
         self.fields = []
+        self.X = None
+        self.O = None
         self.onInit(initial)
 
     def onInit(self, initial):
@@ -52,6 +54,12 @@ class Table:
         for pos in initial.keys():
             self.view.setPosition(pos[0], pos[1], initial[pos][0])
         self.view.refresh()
+
+    def checkState(self):
+        if self.O.isWinner((self.X.firstGP.home, self.X.secondGP.home)):
+            self.winner = self.O
+        elif self.X.isWinner((self.O.firstGP.home, self.O.secondGP.home)):
+            self.winner = self.X
 
     def setBlueWall(self, pos):
         if self.isCorrectBlueWall(pos):
@@ -146,12 +154,16 @@ class Table:
             self.connectX(forConnect, False, position)
             self.connectX(forPrevDisconnect)
 
-       # return (forDisconnect + forPrevConnect, forConnect, forPrevDisconnect)
-
     def connect(self, vals):
         for (x, y) in vals:
             self.fields[x[0] - 1][x[1] - 1].connect(
                 self.fields[x[0] - 1 + y[0]][x[1] - 1 + y[1]])
+        for (x, y) in vals:
+            for f in [self.fields[x[0] - 1][x[1] - 1], self.fields[x[0]-1 + y[0]][x[1]-1 + y[1]]]:
+                f.findNextHopToX(0)
+                f.findNextHopToX(1)
+                f.findNextHopToO(0)
+                f.findNextHopToO(1)
 
     def connectX(self, vals, mirrored=True, position=None):
         if position:
@@ -164,6 +176,10 @@ class Table:
             for (x, y) in vals:
                 self.fields[x[0] - 1][x[1] - 1].connectX(
                     self.fields[x[0] - 1 + y[0]][x[1] - 1 + y[1]], mirrored)
+        for (x, y) in vals:
+            for f in [self.fields[x[0] - 1][x[1] - 1], self.fields[x[0]-1 + y[0]][x[1]-1 + y[1]]]:
+                f.findNextHopToO(0)
+                f.findNextHopToO(1)
 
     def connectO(self, vals, mirrored=True, position=None):
         if position:
@@ -176,21 +192,47 @@ class Table:
             for (x, y) in vals:
                 self.fields[x[0] - 1][x[1] - 1].connectO(
                     self.fields[x[0] - 1 + y[0]][x[1] - 1 + y[1]], mirrored)
+        for (x, y) in vals:
+            for f in [self.fields[x[0] - 1][x[1] - 1], self.fields[x[0]-1 + y[0]][x[1]-1 + y[1]]]:
+                f.findNextHopToX(0)
+                f.findNextHopToX(1)
 
     def disconnect(self, vals, w=None):
         for (x, y) in vals:
             self.fields[x[0]-1][x[1]-1].disconnect(
                 self.fields[x[0]-1 + y[0]][x[1]-1 + y[1]], w)
+        for (x, y) in vals:
+            for f in [self.fields[x[0] - 1][x[1] - 1], self.fields[x[0]-1 + y[0]][x[1]-1 + y[1]]]:
+                if f.nextHopToX[0][0] == None:
+                    f.findNextHopToX(0)
+                if f.nextHopToX[1][0] == None:
+                    f.findNextHopToX(1)
+                if f.nextHopToO[0][0] == None:
+                    f.findNextHopToO(0)
+                if f.nextHopToO[1][0] == None:
+                    f.findNextHopToO(1)
 
     def disconnectX(self, vals):
         for (x, y) in vals:
             self.fields[x[0]-1][x[1]-1].disconnectX(
                 self.fields[x[0]-1 + y[0]][x[1]-1 + y[1]])
+        for (x, y) in vals:
+            for f in [self.fields[x[0] - 1][x[1] - 1], self.fields[x[0]-1 + y[0]][x[1]-1 + y[1]]]:
+                if f.nextHopToO[0][0] == None:
+                    f.findNextHopToO(0)
+                if f.nextHopToO[1][0] == None:
+                    f.findNextHopToO(1)
 
     def disconnectO(self, vals):
         for (x, y) in vals:
             self.fields[x[0]-1][x[1]-1].disconnectO(
                 self.fields[x[0]-1 + y[0]][x[1]-1 + y[1]])
+        for (x, y) in vals:
+            for f in [self.fields[x[0] - 1][x[1] - 1], self.fields[x[0]-1 + y[0]][x[1]-1 + y[1]]]:
+                if f.nextHopToX[0][0] == None:
+                    f.findNextHopToX(0)
+                if f.nextHopToX[1][0] == None:
+                    f.findNextHopToX(1)
 
     def areConnected(self, currentPos, followedPos, name="X"):
         if name == "X":
@@ -217,6 +259,32 @@ class Table:
                 self.setBlueWall((wall[1], wall[2]))
         self.setGamePiece(currentPos, nextPos, name)
         self.view.move(name, currentPos, nextPos, wall)
+        if self.canPlayerXFinish():
+            xPos1 = self.X.firstGP.position
+            xPos2 = self.X.secondGP.position
+            print("Shortest path X1 to O1:",
+                  self.fields[xPos1[0]-1][xPos1[1]-1].getShortestPathToO(0))
+            print("Shortest path X1 to O2:",
+                  self.fields[xPos1[0]-1][xPos1[1]-1].getShortestPathToO(1))
+            print("Shortest path X2 to O1:",
+                  self.fields[xPos2[0]-1][xPos2[1]-1].getShortestPathToO(0))
+            print("Shortest path X2 to O2:",
+                  self.fields[xPos2[0]-1][xPos2[1]-1].getShortestPathToO(1))
+        else:
+            print("Player X can't finish!")
+        if self.canPlayerOFinish():
+            oPos1 = self.O.firstGP.position
+            oPos2 = self.O.secondGP.position
+            print("Shortest path O1 to X1:",
+                  self.fields[oPos1[0]-1][oPos1[1]-1].getShortestPathToX(0))
+            print("Shortest path O1 to X2:",
+                  self.fields[oPos1[0]-1][oPos1[1]-1].getShortestPathToX(1))
+            print("Shortest path O2 to X1:",
+                  self.fields[oPos2[0]-1][oPos2[1]-1].getShortestPathToX(0))
+            print("Shortest path O2 to X2:",
+                  self.fields[oPos2[0]-1][oPos2[1]-1].getShortestPathToX(1))
+        else:
+            print("Player O can't finish!")
 
     @staticmethod
     def createManhattan(currentPos, low, highN, highM, dStep):
@@ -232,8 +300,23 @@ class Table:
     def isManhattan(currentPos, followedPos, dStep):
         return abs(currentPos[0] - followedPos[0]) + abs(currentPos[1] - followedPos[1]) == dStep
 
-    # ova funkcija bi trebalo da izvrsi validaciju za sve connected tako da ispita da li je canFinish_player True za polje position
-    def isPathClosed(self, position, player):
-        return False
+    def canBothPlayersFinish(self):
+        return self.canPlayerXFinish() and self.canPlayerOFinish()
 
-    # ispraviti malo connect i disconnect (ref messanger)
+    def canPlayerXFinish(self):
+        xPos1 = self.X.firstGP.position
+        xPos2 = self.X.secondGP.position
+        cond = self.fields[xPos1[0]-1][xPos1[1]-1].nextHopToO[0][0]
+        cond = cond and self.fields[xPos1[0]-1][xPos1[1]-1].nextHopToO[1][0]
+        cond = cond and self.fields[xPos2[0]-1][xPos2[1]-1].nextHopToO[0][0]
+        cond = cond and self.fields[xPos2[0]-1][xPos2[1]-1].nextHopToO[1][0]
+        return cond
+
+    def canPlayerOFinish(self):
+        oPos1 = self.O.firstGP.position
+        oPos2 = self.O.secondGP.position
+        cond = self.fields[oPos1[0]-1][oPos1[1]-1].nextHopToX[0][0]
+        cond = cond and self.fields[oPos1[0]-1][oPos1[1]-1].nextHopToX[1][0]
+        cond = cond and self.fields[oPos2[0]-1][oPos2[1]-1].nextHopToX[0][0]
+        cond = cond and self.fields[oPos2[0]-1][oPos2[1]-1].nextHopToX[1][0]
+        return cond

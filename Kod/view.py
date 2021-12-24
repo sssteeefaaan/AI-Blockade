@@ -40,9 +40,9 @@ class View:
 
     def setGreenWall(self, i, j, wallNumbUpdate, refresh=False):
         self.template[i + 1] = self.template[i +
-                                                1][:(j << 1) + 1] + [self.greenWall] + self.template[i + 1][(j + 1) << 1:]
+                                             1][:(j << 1) + 1] + [self.greenWall] + self.template[i + 1][(j + 1) << 1:]
         self.template[i + 2] = self.template[i +
-                                                2][:(j << 1) + 1] + [self.greenWall] + self.template[i + 2][(j + 1) << 1:]
+                                             2][:(j << 1) + 1] + [self.greenWall] + self.template[i + 2][(j + 1) << 1:]
         self.template[-wallNumbUpdate][1] -= 1
         if refresh:
             self.refresh()
@@ -50,8 +50,8 @@ class View:
     def refresh(self):
         for r in self.template:
             for v in r:
-                print(v, end="")
-            print()
+                print(v, end="", flush=True)
+            print(flush=True)
 
     def move(self, name, currentPos, nextPos, wall):
         self.setPosition(currentPos[0], currentPos[1])
@@ -59,8 +59,8 @@ class View:
         if wall:
             if wall[0].upper() == 'Z':
                 self.setGreenWall(wall[1], wall[2],
-                                    1 + (3 if name == "X" else 0))
+                                  1 + (3 if name == "X" else 0))
             elif wall[0].upper() == 'P':
                 self.setBlueWall(wall[1], wall[2],
-                                    2 + (3 if name == "X" else 0))
+                                 2 + (3 if name == "X" else 0))
         self.refresh()
