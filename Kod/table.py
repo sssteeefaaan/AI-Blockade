@@ -3,7 +3,7 @@ from view import View
 
 
 class Table:
-    def __init__(self, n=11, m=14, initial={(4, 4): 'X', (8, 4): 'X', (4, 11): 'O', (8, 11): 'O'}, wallNumb=9, greenWall="\u01c1", blueWall="\u2550", rowSep="\u23AF"):
+    def __init__(self, n=11, m=14, initial={(4, 4): "X1", (8, 4): "X2", (4, 11): "O1", (8, 11): "O2"}, wallNumb=9, greenWall="\u01c1", blueWall="\u2550", rowSep="\u23AF"):
         self.n = n
         self.m = m
         self.view = View(n, m, wallNumb, greenWall, blueWall, rowSep)
@@ -24,25 +24,33 @@ class Table:
                     (i, j), 0, self.n-1, self.m-1, 2))
 
                 self.fields[i].append(
-                    Field((i, j), connectedX, connectedO, initial.get((i+1, j+1), None)))
+                    Field(self, (i, j), connectedX, connectedO, initial.get((i+1, j+1), None)))
 
                 match initial.get((i+1, j+1), None):
-                    case "X":
-                        manGen = Table.createManhattanGeneric(
-                            (i+1, j+1), 1, self.n, self.m, 1)
-                        connectInitialO += list(zip([(i+1, j+1)]
-                                                * len(manGen), manGen))
-                    case "O":
-                        manGen = Table.createManhattanGeneric(
-                            (i+1, j+1), 1, self.n, self.m, 1)
-                        connectInitialX += list(zip([(i+1, j+1)]
-                                                * len(manGen), manGen))
+                    case "X1" | "X2":
+                        position = (i+1, j+1)
+                        manGen = list(map(lambda x: ((position[0] - x[0], position[1] - x[1]), x),
+                                          Table.createManhattanGeneric(position, 1, self.n, self.m, 1)))
+                        connectInitialO += list(filter(lambda x: 0 < x[0][0] + x[1][0] <=
+                                                       self.n and 0 < x[0][1] + x[1][1] <= self.m, manGen))
+                    case "O1" | "O2":
+                        position = (i+1, j+1)
+                        manGen = list(map(lambda x: ((position[0] - x[0], position[1] - x[1]), x),
+                                          Table.createManhattanGeneric(position, 1, self.n, self.m, 1)))
+                        connectInitialX += list(filter(lambda x: 0 < x[0][0] + x[1][0] <=
+                                                       self.n and 0 < x[0][1] + x[1][1] <= self.m, manGen))
 
-        self.connectO(connectInitialO)
-        self.connectX(connectInitialX)
+        self.connectO(connectInitialO, False)
+        self.connectX(connectInitialX, False)
+
+        for row in self.fields:
+            for f in row:
+                for i in range(2):
+                    f.findNextHopToX(i)
+                    f.findNextHopToO(i)
 
         for pos in initial.keys():
-            self.view.setPosition(pos[0], pos[1], initial[pos])
+            self.view.setPosition(pos[0], pos[1], initial[pos][0])
         self.view.refresh()
 
     def setBlueWall(self, pos):
@@ -116,11 +124,11 @@ class Table:
         forConnect = list(map(lambda x: ((position[0] - x[0] * 2, position[1] - x[1] * 2), x),
                               Table.createManhattanGeneric(position, 1, self.n, self.m, 1)))
         forConnect = list(filter(lambda x: 0 < x[0][0] + x[1][0] <=
-                           self.n and 0 < x[0][1] + x[1][1] <= self.m, forConnect))
+                                 self.n and 0 < x[0][1] + x[1][1] <= self.m, forConnect))
         forPrevConnect = list(map(lambda x: ((prevPos[0] - x[0] * 2, prevPos[1] - x[1] * 2), x),
                                   Table.createManhattanGeneric(prevPos, 1, self.n, self.m, 1)))
         forPrevConnect = list(filter(lambda x: 0 < x[0][0] + x[1][0] <=
-                            self.n and 0 < x[0][1] + x[1][1] <= self.m, forPrevConnect))
+                                     self.n and 0 < x[0][1] + x[1][1] <= self.m, forPrevConnect))
         forDisconnect = Table.createManhattanGeneric(
             position, 1, self.n, self.m, 2)
         forDisconnect = list(zip([position]*len(forDisconnect), forDisconnect))
@@ -145,9 +153,10 @@ class Table:
             self.fields[x[0] - 1][x[1] - 1].connect(
                 self.fields[x[0] - 1 + y[0]][x[1] - 1 + y[1]])
 
-    def connectX(self, vals, mirrored = True, position = None):
+    def connectX(self, vals, mirrored=True, position=None):
         if position:
-            con = [ (x, y) for (x, y) in vals if (x[0]-1, x[1]-1) in self.fields[position[0] -1] [position[1] - 1].connectedO ]
+            con = [(x, y) for (x, y) in vals if (x[0]-1, x[1]-1)
+                   in self.fields[position[0] - 1][position[1] - 1].connectedO]
             for (x, y) in con:
                 self.fields[x[0] - 1][x[1] - 1].connectX(
                     self.fields[x[0] - 1 + y[0]][x[1] - 1 + y[1]], mirrored)
@@ -156,9 +165,10 @@ class Table:
                 self.fields[x[0] - 1][x[1] - 1].connectX(
                     self.fields[x[0] - 1 + y[0]][x[1] - 1 + y[1]], mirrored)
 
-    def connectO(self, vals, mirrored = True, position = None):
+    def connectO(self, vals, mirrored=True, position=None):
         if position:
-            con = [ (x, y) for (x, y) in vals if (x[0]-1, x[1]-1) in self.fields[position[0] -1] [position[1] - 1].connectedX ]
+            con = [(x, y) for (x, y) in vals if (x[0]-1, x[1]-1)
+                   in self.fields[position[0] - 1][position[1] - 1].connectedX]
             for (x, y) in con:
                 self.fields[x[0] - 1][x[1] - 1].connectO(
                     self.fields[x[0] - 1 + y[0]][x[1] - 1 + y[1]], mirrored)
@@ -222,7 +232,7 @@ class Table:
     def isManhattan(currentPos, followedPos, dStep):
         return abs(currentPos[0] - followedPos[0]) + abs(currentPos[1] - followedPos[1]) == dStep
 
-    # ova funkcija bi trebalo da izvrsi validaciju za sve connected tako da ispita da li je canFinish_player True za polje position 
+    # ova funkcija bi trebalo da izvrsi validaciju za sve connected tako da ispita da li je canFinish_player True za polje position
     def isPathClosed(self, position, player):
         return False
 

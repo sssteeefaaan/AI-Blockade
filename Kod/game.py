@@ -3,9 +3,7 @@ from table import Table
 
 
 class Game:
-    def __init__(self, n=11, m=14, initial={(4, 4): 'X', (8, 4): 'X', (4, 11): 'O', (8, 11
-    ): 'O'},
-                 wallNumb=9, greenWall="\u01c1", blueWall="\u2550", rowSep="\u23AF"):
+    def __init__(self, n=11, m=14, initial={(4, 4): "X1", (8, 4): "X2", (4, 11): "O1", (8, 11): "O2"}, wallNumb=9, greenWall="\u01c1", blueWall="\u2550", rowSep="\u23AF"):
         self.table = Table(n, m, initial, wallNumb,
                            greenWall, blueWall, rowSep)
         self.X = None
@@ -15,67 +13,56 @@ class Game:
 
     def start(self, wallNumb, initial):
         while self.next is None:
-            try:
-                xPos = [x for x in initial.keys() if initial[x] == "X"]
-                oPos = [o for o in initial.keys() if initial[o] == "O"]
-                match input("X/o?\n"):
-                    case ("X" | "x"):
-                        self.X = Player(
-                            "X", False, wallNumb, xPos[0], xPos[1])
-                        self.O = Player(
-                            "O", True, wallNumb, oPos[0], oPos[1])
-                    case ("O" | "o"):
-                        self.O = Player(
-                            "O", True, wallNumb, oPos[0], oPos[1])
-                        self.X = Player(
-                            "X", False, wallNumb, xPos[0], xPos[1])
-                    case _:
-                        raise Exception("Invalid player selection input!")
-                self.next = self.X
-            except Exception as e:
-                print(e)
+            xPos = [x for x in initial.keys() if initial[x] in ["X1", "X2"]]
+            oPos = [o for o in initial.keys() if initial[o] in ["O1", "O2"]]
+            match input("X/o?\n"):
+                case ("X" | "x"):
+                    self.X = Player(
+                        "X", False, wallNumb, xPos[0], xPos[1])
+                    self.O = Player(
+                        "O", True, wallNumb, oPos[0], oPos[1])
+                case ("O" | "o"):
+                    self.O = Player(
+                        "O", True, wallNumb, oPos[0], oPos[1])
+                    self.X = Player(
+                        "X", False, wallNumb, xPos[0], xPos[1])
+                case _:
+                    print("Invalid player selection input!")
+                    continue
+            self.next = self.X
         self.play()
 
-    # ne da printa
     def validation(self, move):
-        try:
-            if self.next.name != move[0][0]:
-                raise Exception("Not your turn!")
-            if self.table.n < move[1][0] or move[1][0] < 1:
-                raise Exception("Row index out of bounds!")
-            if self.table.m < move[1][1] or move[1][1] < 1:
-                raise Exception("Column index out of bounds!")
-            if move[1] == (self.next.firstGP.position if move[0][1] == 1 else self.next.secondGP.position):
-                raise Exception("You're already on that position!")
-            if move[1] == (self.next.firstGP.position if move[0][1] == 2 else self.next.secondGP.position):
-                raise Exception("Can't step on your pieces!")
-            if not move[2] and self.next.noBlueWalls + self.next.noGreenWalls > 0:
-                raise Exception("You didn't put up a wall!")
-            if move[2]:
-                if move[2][1] > self.table.n-1 or move[2][1] < 1:
-                    raise Exception("Wall row index out of bounds!")
-                if move[2][2] > self.table.m-1 or move[2][2] < 1:
-                    raise Exception("Wall column index out of bounds!")
-                if move[2][0] == "Z":
-                    if self.next.noGreenWalls < 1:
-                        raise Exception(
-                            "You don't have any green walls left to place...")
-                    if not self.table.isCorrectGreenWall((move[2][1], move[2][2])):
-                        raise Exception(
-                            "Green wall cannot be set on the given position!")
-                elif move[2][0] == "P":
-                    if self.next.noBlueWalls < 1:
-                        raise Exception(
-                            "You don't have any blue walls left to place...")
-                    if not self.table.isCorrectBlueWall((move[2][1], move[2][2])):
-                        raise Exception(
-                            "Blue wall cannot be set on the given position!")
-            if not self.table.areConnected(self.next.firstGP.position if move[0][1] == 1 else self.next.secondGP.position, move[1], move[0][0]):
-                raise Exception("Invalid move!")
-        except Exception as e:
-            print(e)
-            return False
-        return True
+        if self.next.name != move[0][0]:
+            return (False, "Not your turn!")
+        if self.table.n < move[1][0] or move[1][0] < 1:
+            return (False, "Row index out of bounds!")
+        if self.table.m < move[1][1] or move[1][1] < 1:
+            return (False, "Column index out of bounds!")
+        if move[1] == (self.next.firstGP.position if move[0][1] == 1 else self.next.secondGP.position):
+            return (False, "You're already on that position!")
+        if move[1] == (self.next.firstGP.position if move[0][1] == 2 else self.next.secondGP.position):
+            return (False, "Can't step on your pieces!")
+        if not move[2] and self.next.noBlueWalls + self.next.noGreenWalls > 0:
+            return (False, "You didn't put up a wall!")
+        if move[2]:
+            if move[2][1] > self.table.n-1 or move[2][1] < 1:
+                return (False, "Wall row index out of bounds!")
+            if move[2][2] > self.table.m-1 or move[2][2] < 1:
+                return (False, "Wall column index out of bounds!")
+            if move[2][0] == "Z":
+                if self.next.noGreenWalls < 1:
+                    return (False, "You don't have any green walls left to place...")
+                if not self.table.isCorrectGreenWall((move[2][1], move[2][2])):
+                    return (False, "Green wall cannot be set on the given position!")
+            elif move[2][0] == "P":
+                if self.next.noBlueWalls < 1:
+                    return (False, "You don't have any blue walls left to place...")
+                if not self.table.isCorrectBlueWall((move[2][1], move[2][2])):
+                    return (False, "Blue wall cannot be set on the given position!")
+        if not self.table.areConnected(self.next.firstGP.position if move[0][1] == 1 else self.next.secondGP.position, move[1], move[0][0]):
+            return (False, "Invalid move!")
+        return (True, "Valid move!")
 
     def checkState(self):
         if self.O.isWinner((self.X.firstGP.home, self.X.secondGP.home)):
@@ -85,48 +72,48 @@ class Game:
 
     def play(self):
         while not self.winner:
-            try:
-                move = Game.parseMove(input(
-                    f"{self.next.name} is on the move!\n"))
-                if move and self.validation(move):
+            parsedMove = Game.parseMove(input(
+                f"{self.next.name} is on the move!\n"))
+            if parsedMove[0]:
+                move = parsedMove[1]
+                validated = self.validation(move)
+                if validated[0]:
                     self.table.move(self.next.name, self.next.move(
                         move[0][1], move[1], move[2]), move[1], move[2])
                     self.next = self.X if self.next.name == self.O.name else self.O
                     self.checkState()
-            except Exception as e:
-                print(e)
+                else:
+                    print(validated[1])
+            else:
+                print(parsedMove[1])
         print(f"{self.winner.name} won! Congrats!")
 
     @staticmethod
     def parseMove(stream):
-        try:
-            ret = []
-            m = stream.replace('[', '').replace(']', '').upper().split(' ')
-            if m[0] not in ["X", "O"]:
-                raise Exception("Invalid player ID!")
-            if m[1] not in ['1', '2']:
-                raise Exception("Invalid piece ID!")
-            ret += [[m[0], int(m[1])]]
-            if len(m) < 4:
-                raise Exception("Missing positional coordinates!")
-            ret += [tuple([ord(x)-55 if x >= 'A' else ord(x)-48 for x in m[2:4]])]
-            if len(m) > 4:
-                if m[4] not in ["Z", "P"]:
-                    raise Exception("Invalid wall ID!")
-                ret += [[m[4], *[ord(x)-55 if x >=
-                                 'A' else ord(x)-48 for x in m[5:7]]]]
-            else:
-                ret += [None]
-            return ret
-        except Exception as e:
-            print(e)
-            return []
+        ret = []
+        m = stream.replace('[', '').replace(']', '').upper().split(' ')
+        if m[0] not in ["X", "O"]:
+            return (False, "Invalid player ID!")
+        if m[1] not in ['1', '2']:
+            return (False, "Invalid piece ID!")
+        ret += [[m[0], int(m[1])]]
+        if len(m) < 4:
+            return (False, "Missing positional coordinates!")
+        ret += [tuple([ord(x)-55 if x >= 'A' else ord(x)-48 for x in m[2:4]])]
+        if len(m) > 4:
+            if m[4] not in ["Z", "P"]:
+                return (False, "Invalid wall ID!")
+            ret += [[m[4], *
+                     [ord(x)-55 if x >= 'A' else ord(x)-48 for x in m[5:7]]]]
+        else:
+            ret += [None]
+        return (True, ret)
 
     # funkcija prvo za kopiranje trenutne tabele i odigravanja prosledjenog VALIDNOG poteza
     # zatim funkicja koja vraca sve moguce poteze
     # funkcija koja validira te poteze
     # na kraju funkcija koja vrati listu svih tabela koje bi bile nakon ovih validno odigranih poteza
-    # kesiranje(maybe)?!?!?! 
+    # kesiranje(maybe)?!?!?!
 
 
 def main():
@@ -145,13 +132,13 @@ def main():
             f"Input {len(initial)+1}. initial position for X (Empty for the default value of ({4 if len(initial) == 0 else 8}, 4)): ")
         temp = temp if temp else f"({4 if len(initial) == 0 else 8}, 4)"
         initial[tuple(map(lambda x: int(x), temp.replace(
-            "(", "").replace(")", "").replace(",", "").split(" ")))] = "X"
+            "(", "").replace(")", "").replace(",", "").split(" ")))] = f"X{len(initial)+1}"
     while len(initial.keys()) < 4:
         temp = input(
             f"Input {len(initial)-1}. initial position for O (Empty for the default value of ({4 if len(initial)-1 == 1 else 8}, 11)): ")
         temp = temp if temp else f"({4 if len(initial)-1 == 1 else 8}, 11)"
         initial[tuple(map(lambda x: int(x), temp.replace(
-            "(", "").replace(")", "").replace(",", "").split(" ")))] = "O"
+            "(", "").replace(")", "").replace(",", "").split(" ")))] = f"O{len(initial)-1}"
     wallNumb = ""
     while not str.isdigit(wallNumb) or int(wallNumb) < 9 or int(wallNumb) > 18:
         wallNumb = input(
