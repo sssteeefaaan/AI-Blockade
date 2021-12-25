@@ -34,14 +34,14 @@ class Table:
                         position = (i+1, j+1)
                         manGen = list(map(lambda x: ((position[0] - x[0], position[1] - x[1]), x),
                                           Table.createManhattanGeneric(position, 1, self.n, self.m, 1)))
-                        connectInitialO += list(filter(lambda x: 0 < x[0][0] + x[1][0] <=
-                                                       self.n and 0 < x[0][1] + x[1][1] <= self.m, manGen))
+                        connectInitialO += list(filter(lambda x: 0 < x[0][0] + x[1][0] <
+                                                       self.n and 0 < x[0][1] + x[1][1] < self.m, manGen))
                     case "O1" | "O2":
                         position = (i+1, j+1)
                         manGen = list(map(lambda x: ((position[0] - x[0], position[1] - x[1]), x),
                                           Table.createManhattanGeneric(position, 1, self.n, self.m, 1)))
-                        connectInitialX += list(filter(lambda x: 0 < x[0][0] + x[1][0] <=
-                                                       self.n and 0 < x[0][1] + x[1][1] <= self.m, manGen))
+                        connectInitialX += list(filter(lambda x: 0 < x[0][0] + x[1][0] <
+                                                       self.n and 0 < x[0][1] + x[1][1] < self.m, manGen))
 
         for k in initial.keys():
             self.setGamePiece(
@@ -56,8 +56,8 @@ class Table:
                     f.findNextHopToX(i)
                     f.findNextHopToO(i)
 
-        for pos in initial.keys():
-            self.view.setPosition(pos[0], pos[1], initial[pos][0])
+        #for pos in initial.keys():
+            #self.view.setPosition(pos[0], pos[1], initial[pos][0])
         self.view.refresh()
 
     def checkState(self):
@@ -262,7 +262,7 @@ class Table:
             if wall[0] == "P":
                 self.setBlueWall((wall[1], wall[2]))
         self.setGamePiece(currentPos, nextPos, name)
-        self.view.move(name, currentPos, nextPos, wall)
+        #self.view.move(name, currentPos, nextPos, wall)
         if self.canPlayerXFinish():
             xPos1 = self.X.firstGP.position
             xPos2 = self.X.secondGP.position

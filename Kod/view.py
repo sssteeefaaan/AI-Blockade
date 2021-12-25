@@ -19,27 +19,49 @@ class View:
                      for j in range(1, m + 1)], "  "]
         ]
 
-    def setPosition(self, i, j, placeholder=" ", refresh=False):
-        self.template[i + 1] = self.template[i + 1][:j << 1] + \
-            [placeholder] + self.template[i + 1][(j << 1) + 1:]
-        if refresh:
-            self.refresh()
+    # def setPosition(self, i, j, placeholder=" ", refresh=False):
+    #     self.template[i + 1] = self.template[i + 1][:j << 1] + \
+    #         [placeholder] + self.template[i + 1][(j << 1) + 1:]
+    #     if refresh:
+    #         self.refresh()
 
-    def setBlueWall(self, i, j, wallUpdate, refresh=False):
-        self.template[i + 1] = self.template[i + 1][:(self.m + 2 + j) << 1] + [
-            self.blueWall] + [" "] + [self.blueWall] + self.template[i + 1][((self.m + 2 + j) << 1) + 3:]
-        self.wallNumb[wallUpdate] -= 1
-        if refresh:
-            self.refresh()
+    # def setBlueWall(self, i, j, wallUpdate, refresh=False):
+    #     self.template[i + 1] = self.template[i + 1][:(self.m + 2 + j) << 1] + [
+    #         self.blueWall] + [" "] + [self.blueWall] + self.template[i + 1][((self.m + 2 + j) << 1) + 3:]
+    #     self.wallNumb[wallUpdate] -= 1
+    #     if refresh:
+    #         self.refresh()
 
-    def setGreenWall(self, i, j, wallUpdate, refresh=False):
-        self.template[i + 1] = self.template[i +
-                                             1][:(j << 1) + 1] + [self.greenWall] + self.template[i + 1][(j + 1) << 1:]
-        self.template[i + 2] = self.template[i +
-                                             2][:(j << 1) + 1] + [self.greenWall] + self.template[i + 2][(j + 1) << 1:]
-        self.wallNumb[wallUpdate] -= 1
-        if refresh:
-            self.refresh()
+    # def setGreenWall(self, i, j, wallUpdate, refresh=False):
+    #     self.template[i + 1] = self.template[i +
+    #                                          1][:(j << 1) + 1] + [self.greenWall] + self.template[i + 1][(j + 1) << 1:]
+    #     self.template[i + 2] = self.template[i +
+    #                                          2][:(j << 1) + 1] + [self.greenWall] + self.template[i + 2][(j + 1) << 1:]
+    #     self.wallNumb[wallUpdate] -= 1
+    #     if refresh:
+    #         self.refresh()
+
+    def showTable(self, greenWalls, blueWalls, players, wallNumbers):
+        table = list()
+        for t in self.template:
+            table.append(list(t))
+
+        for gw in greenWalls:
+            table[gw[0] + 1] = table[gw[0] + 1][:(gw[1] << 1) + 1] + [self.greenWall] + table[gw[0] + 1][(gw[1] + 1) << 1:]
+            table[gw[0] + 2] = table[gw[0] + 2][:(gw[1] << 1) + 1] + [self.greenWall] + table[gw[0] + 2][(gw[1] + 1) << 1:]
+
+        for bw in blueWalls:
+            table[bw[0] + 1] = table[bw[0] + 1][:(self.m + 2 + bw[1]) << 1] + [
+            self.blueWall] + [" "] + [self.blueWall] + table[bw[0] + 1][((self.m + 2 + bw[1]) << 1) + 3:]
+
+        for player in players:
+            table[players[player][0] + 1] = table[players[player][0] + 1][:players[player][1] << 1] + [player if player else ' '] + table[players[player][0] + 1][(players[player][players[player][1]] << 1) + 1:]  
+
+        self.wallNumb = dict(wallNumbers)
+
+        self.refresh()
+
+        print(table)
 
     def refresh(self):
         for r in self.template:
@@ -52,12 +74,12 @@ class View:
         print(
             f"\tG: {self.wallNumb['xGreen']}\t\t|\tG: {self.wallNumb['oGreen']}\n")
 
-    def move(self, name, currentPos, nextPos, wall):
-        self.setPosition(currentPos[0], currentPos[1])
-        self.setPosition(nextPos[0], nextPos[1], name)
-        if wall:
-            if wall[0].upper() == 'Z':
-                self.setGreenWall(wall[1], wall[2], name.lower()+"Green")
-            elif wall[0].upper() == 'P':
-                self.setBlueWall(wall[1], wall[2], name.lower()+"Blue")
-        self.refresh()
+    # def move(self, name, currentPos, nextPos, wall):
+    #     self.setPosition(currentPos[0], currentPos[1])
+    #     self.setPosition(nextPos[0], nextPos[1], name)
+    #     if wall:
+    #         if wall[0].upper() == 'Z':
+    #             self.setGreenWall(wall[1], wall[2], name.lower()+"Green")
+    #         elif wall[0].upper() == 'P':
+    #             self.setBlueWall(wall[1], wall[2], name.lower()+"Blue")
+    #     self.refresh()
