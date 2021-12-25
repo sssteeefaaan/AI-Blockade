@@ -139,6 +139,7 @@ def main():
             "Input the number of blue/green walls each player has (Empty for the default minimum value of 9, the max is 18): ")
         wallNumb = wallNumb if wallNumb else "9"
 
+
     g = Game(int(n), int(m), initial, int(wallNumb))
     g.start(int(wallNumb), initial)
 

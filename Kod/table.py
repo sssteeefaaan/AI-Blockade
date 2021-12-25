@@ -131,8 +131,8 @@ class Table:
     def setGamePiece(self, prevPos, position, name="X"):
         forConnect = list(map(lambda x: ((position[0] - x[0] * 2, position[1] - x[1] * 2), x),
                               Table.createManhattanGeneric(position, 1, self.n, self.m, 1)))
-        forConnect = list(filter(lambda x: 0 < x[0][0] + x[1][0] <=
-                                 self.n and 0 < x[0][1] + x[1][1] <= self.m, forConnect))
+        forConnect = list(filter(lambda x: 0 < x[0][0] + x[1][0] <
+                                 self.n and 0 < x[0][1] + x[1][1] < self.m, forConnect))
         forPrevConnect = list(map(lambda x: ((prevPos[0] - x[0] * 2, prevPos[1] - x[1] * 2), x),
                                   Table.createManhattanGeneric(prevPos, 1, self.n, self.m, 1)))
         forPrevConnect = list(filter(lambda x: 0 < x[0][0] + x[1][0] <=
