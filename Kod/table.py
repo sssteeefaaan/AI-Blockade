@@ -6,7 +6,8 @@ class Table:
     def __init__(self, n=11, m=14, initial={(4, 4): "X1", (8, 4): "X2", (4, 11): "O1", (8, 11): "O2"}, wallNumb=9, greenWall="\u01c1", blueWall="\u2550", rowSep="\u23AF"):
         self.n = n
         self.m = m
-        self.view = View(n, m, wallNumb, greenWall, blueWall, rowSep)
+        self.view = View(n, m, {'xBlue': wallNumb, 'xGreen': wallNumb,
+                         'oBlue': wallNumb, 'oGreen': wallNumb}, greenWall, blueWall, rowSep)
         self.blueWalls = set()
         self.greenWalls = set()
         self.fields = []
@@ -42,6 +43,10 @@ class Table:
                         connectInitialX += list(filter(lambda x: 0 < x[0][0] + x[1][0] <=
                                                        self.n and 0 < x[0][1] + x[1][1] <= self.m, manGen))
 
+        for k in initial.keys():
+            self.setGamePiece(
+                (-100, -100), (k[0] + 1, k[1] + 1), initial.get(k)[0])
+
         self.connectO(connectInitialO, False)
         self.connectX(connectInitialX, False)
 
@@ -65,12 +70,12 @@ class Table:
         if self.isCorrectBlueWall(pos):
             self.blueWalls.add(pos)
             forDisconnect = []
-            up1 = pos[0] - 1 > 0
-            down1 = pos[0] + 1 <= self.n
-            down2 = pos[0] + 2 <= self.n
-            left1 = pos[1] - 1 > 0
-            right1 = pos[1] + 1 <= self.m
-            right2 = pos[1] + 2 <= self.m
+            up1 = (pos[0] - 1) > 0
+            down1 = (pos[0] + 1) <= self.n
+            down2 = (pos[0] + 2) <= self.n
+            left1 = (pos[1] - 1) > 0
+            right1 = (pos[1] + 1) <= self.m
+            right2 = (pos[1] + 2) <= self.m
 
             if down1:
                 forDisconnect += [(pos, (1, 0))]
@@ -81,16 +86,15 @@ class Table:
                     if down2:
                         forDisconnect += [((pos[0], pos[1] + 1), (2, 0))]
                     if up1:
-
                         forDisconnect += [((pos[0] + 1, pos[1] + 1), (-2, 0))]
                 if up1:
                     forDisconnect += [((pos[0] + 1, pos[1]), (-2, 0))]
                 if down2:
                     forDisconnect += [(pos, (2, 0))]
-                if left1 and ((pos[0], pos[1]-2) in self.blueWalls or (pos[0]-1, pos[1]-1) in self.greenWalls):
+                if left1 and ((pos[0], pos[1]-2) in self.blueWalls or (pos[0]-1, pos[1]-1) in self.greenWalls or (pos[0]+1, pos[1]-1) in self.greenWalls):
                     forDisconnect += [(pos, (1, -1)),
                                       ((pos[0]+1, pos[1]), (-1, -1))]
-                if right2 and ((pos[0], pos[1]+2) in self.blueWalls or (pos[0]-1, pos[1]+1) in self.greenWalls):
+                if right2 and ((pos[0], pos[1]+2) in self.blueWalls or (pos[0]-1, pos[1]+1) in self.greenWalls or (pos[0]+1, pos[1]+1) in self.greenWalls):
                     forDisconnect += [((pos[0], pos[1]+1), (1, 1)),
                                       ((pos[0]+1, pos[1]+1), (-1, 1))]
 
@@ -100,12 +104,12 @@ class Table:
         if self.isCorrectGreenWall(pos):
             self.greenWalls.add(pos)
             forDisconnect = []
-            up1 = pos[0] - 1 > 0
-            down1 = pos[0] + 1 <= self.n
-            down2 = pos[0] + 2 <= self.n
-            left1 = pos[1] - 1 > 0
-            right1 = pos[1] + 1 <= self.m
-            right2 = pos[1] + 2 <= self.m
+            up1 = (pos[0] - 1) > 0
+            down1 = (pos[0] + 1) <= self.n
+            down2 = (pos[0] + 2) <= self.n
+            left1 = (pos[1] - 1) > 0
+            right1 = (pos[1] + 1) <= self.m
+            right2 = (pos[1] + 2) <= self.m
 
             if right1:
                 forDisconnect += [(pos, (0, 1))]
@@ -115,11 +119,11 @@ class Table:
                                       ((pos[0] + 1, pos[1]), (0, 1))]
                     if left1:
                         forDisconnect += [((pos[0] + 1, pos[1] + 1), (0, -2))]
-                    if down2 and ((pos[0]+2, pos[1]) in self.greenWalls or (pos[0]+1, pos[1]-1) in self.blueWalls):
+                    if down2 and ((pos[0]+2, pos[1]) in self.greenWalls or (pos[0]+1, pos[1]-1) in self.blueWalls or (pos[0]+1, pos[1]+1) in self.blueWalls):
                         forDisconnect += [((pos[0]+1, pos[1]), (1, 1)),
                                           ((pos[0] + 1, pos[1] + 1), (1, -1))]
                     forDisconnect += [((pos[0], pos[1] + 1), (0, -2))]
-                if up1 and ((pos[0]-2, pos[1]) in self.greenWalls or (pos[0]-1, pos[1]-1) in self.blueWalls):
+                if up1 and ((pos[0]-2, pos[1]) in self.greenWalls or (pos[0]-1, pos[1]-1) in self.blueWalls or (pos[0]-1, pos[1]+1) in self.blueWalls):
                     forDisconnect += [(pos, (-1, 1)),
                                       ((pos[0], pos[1] + 1), (-1, -1))]
             if right2:
@@ -135,8 +139,8 @@ class Table:
                                  self.n and 0 < x[0][1] + x[1][1] < self.m, forConnect))
         forPrevConnect = list(map(lambda x: ((prevPos[0] - x[0] * 2, prevPos[1] - x[1] * 2), x),
                                   Table.createManhattanGeneric(prevPos, 1, self.n, self.m, 1)))
-        forPrevConnect = list(filter(lambda x: 0 < x[0][0] + x[1][0] <=
-                                     self.n and 0 < x[0][1] + x[1][1] <= self.m, forPrevConnect))
+        forPrevConnect = list(filter(lambda x: 0 < x[0][0] + x[1][0] <
+                                     self.n and 0 < x[0][1] + x[1][1] < self.m, forPrevConnect))
         forDisconnect = Table.createManhattanGeneric(
             position, 1, self.n, self.m, 2)
         forDisconnect = list(zip([position]*len(forDisconnect), forDisconnect))
@@ -293,8 +297,8 @@ class Table:
 
     @staticmethod
     def createManhattanGeneric(currentPos, low, highN, highM, dStep=2):
-        return [(x, y) for x in range(-2, 3) for y in range(-2, 3) if low <= currentPos[0] +
-                x <= highN and low <= currentPos[1] + y <= highM and Table.isManhattan((0, 0), (x, y), dStep)]
+        return [(x, y) for x in range(-dStep, dStep+1) for y in range(-dStep, dStep+1) if low <= (currentPos[0] +
+                x) <= highN and low <= (currentPos[1] + y) <= highM and Table.isManhattan((0, 0), (x, y), dStep)]
 
     @staticmethod
     def isManhattan(currentPos, followedPos, dStep):

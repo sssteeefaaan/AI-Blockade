@@ -65,6 +65,7 @@ class Game:
         return (True, "Valid move!")
 
     def play(self):
+
         while not self.winner:
             parsedMove = Game.parseMove(input(
                 f"{self.next.name} is on the move!\n"))
@@ -74,6 +75,7 @@ class Game:
                 if validated[0]:
                     self.table.move(self.next.name, self.next.move(
                         move[0][1], move[1], move[2]), move[1], move[2])
+
                     self.next = self.table.X if self.next.name == self.table.O.name else self.table.O
                     self.table.checkState()
                 else:
