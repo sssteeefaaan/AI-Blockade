@@ -10,27 +10,17 @@ class Player:
             initial1st = initialPos1st if initialPos1st else (4, 11)
             initial2nd = initialPos2nd if initialPos2nd else (8, 11)
         self.name = name
-
         self.firstGP = GamePiece(initial1st)
         self.secondGP = GamePiece(initial2nd)
-
         self.noBlueWalls = wallNumb
         self.noGreenWalls = wallNumb
-
         self.isComputer = isComputer
 
     def move(self, pieceNum, positon, wall=None):
-        prevPos = None
         if pieceNum == 1:
-            prevPos = self.firstGP.position
-            self.firstGP.position = positon
+            prevPos = self.firstGP.move(positon)
         else:
-            prevPos = self.secondGP.position
-            self.secondGP.position = positon
-
-        if self.noGreenWalls + self.noBlueWalls < 0:
-            wall = None
-            
+            prevPos = self.secondGP.move(positon)
         if wall != None:
             if wall[0].upper() == "Z":
                 self.noGreenWalls -= 1
