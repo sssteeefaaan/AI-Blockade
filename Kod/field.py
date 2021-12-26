@@ -3,85 +3,25 @@ class Field:
         self.table = table
         self.position = position
         self.initialFor = initialFor[0] if initialFor else None
-        self.connectedX = connectedX
-        self.connectedO = connectedO
-        self.oneWayConnectedX = oneWayConnectedX
-        self.oneWayConnectedO = oneWayConnectedO
-        self.discWalls = discWalls
-        self.nextHopToX = nextHopToX
-        self.nextHopToO = nextHopToO
+        self.connectedX = set(connectedX)
+        self.connectedO = set(connectedO)
+        self.oneWayConnectedX = set(oneWayConnectedX)
+        self.oneWayConnectedO = set(oneWayConnectedO)
+        self.nextHopToX = list(nextHopToX)
+        self.nextHopToO = list(nextHopToO)
+        self.discWalls = set(discWalls)
         match initialFor:
             case "X1":
-                self.nextHopToX[0] = (self.position, 0)
+                self.nextHopToX[0] = (position, 0)
             case "X2":
-                self.nextHopToX[1] = (self.position, 0)
+                self.nextHopToX[1] = (position, 0)
             case "O1":
-                self.nextHopToO[0] = (self.position, 0)
+                self.nextHopToO[0] = (position, 0)
             case "O2":
-                self.nextHopToO[1] = (self.position, 0)
+                self.nextHopToO[1] = (position, 0)
 
     def getCopy(self, table):
-        return Field(table, self.position, self.initialFor, set(self.connectedX), set(self.connectedO), set(self.oneWayConnectedX), set(self.oneWayConnectedO), set(self.discWalls), list(self.nextHopToX), list(self.nextHopToO))
-
-    def findNextHopToX(self, ind=0, f=None):
-        change = False
-        if f and f.position == self.nextHopToX[ind][0]:
-            self.nextHopToX[ind] = (None, 99999)
-            change = True
-        for neighbour in self.connectedO:
-            neighbourField = self.table.fields[neighbour[0]][neighbour[1]]
-            if neighbourField.nextHopToX[ind][0] not in [self.position, None] and neighbourField.nextHopToX[ind][1] < (self.nextHopToX[ind][1]-1):
-                self.nextHopToX[ind] = (
-                    neighbourField.position, neighbourField.nextHopToX[ind][1] + 1)
-                change = True
-        if change:
-            for n in self.connectedO | self.oneWayConnectedO:
-                if not f or f.position != n:
-                    self.table.fields[n[0]][n[1]].findNextHopToX(ind, self)
-
-    def findNextHopToO(self, ind=0, f=None):
-        change = False
-        if f and f.position == self.nextHopToO[ind][0]:
-            self.nextHopToO[ind] = (None, 99999)
-            change = True
-        for neighbour in self.connectedX:
-            neighbourField = self.table.fields[neighbour[0]][neighbour[1]]
-            if neighbourField.nextHopToO[ind][0] not in [self.position, None] and neighbourField.nextHopToO[ind][1] < (self.nextHopToO[ind][1]-1):
-                self.nextHopToO[ind] = (
-                    neighbourField.position, neighbourField.nextHopToO[ind][1] + 1)
-                change = True
-        if change:
-            for n in self.connectedX | self.oneWayConnectedX:
-                if not f or f.position != n:
-                    self.table.fields[n[0]][n[1]].findNextHopToO(ind, self)
-
-    def getShortestPathToX(self, ind=0):
-        path = []
-        try:
-            nextHop = self
-            while nextHop and nextHop.nextHopToX[ind][0] != nextHop.position:
-                print(nextHop.position, nextHop.connectedO)
-                path += [nextHop.position]
-                nextHop = nextHop.table.fields[nextHop.nextHopToX[ind]
-                                               [0][0]][nextHop.nextHopToX[ind][0][1]]
-            path += [nextHop.position]
-        except Exception as e:
-            print(e)
-        return path
-
-    def getShortestPathToO(self, ind=0):
-        path = []
-        try:
-            nextHop = self
-            while nextHop and nextHop.nextHopToO[ind][0] != nextHop.position:
-                print(nextHop.position, nextHop.connectedX)
-                path += [nextHop.position]
-                nextHop = nextHop.table.fields[nextHop.nextHopToO[ind]
-                                               [0][0]][nextHop.nextHopToO[ind][0][1]]
-            path += [nextHop.position]
-        except Exception as e:
-            print(e)
-        return path
+        return Field(table, self.position, self.initialFor, self.connectedX, self.connectedO, self.oneWayConnectedX, self.oneWayConnectedO, self.discWalls, self.nextHopToX, self.nextHopToO)
 
     def connect(self, f):
         self.connectX(f)
@@ -107,16 +47,15 @@ class Field:
 
     def disconnectX(self, f, w=None):
         if (w != None or (f.initialFor != "O" and self.initialFor != "O")):
+            if f.position == self.nextHopToX[0][0]:
+                self.annihilateNextHopToX(0)
+            if f.position == self.nextHopToX[1][0]:
+                self.annihilateNextHopToX(1)
             f.oneWayConnectedX.discard(self.position)
             if f.position in self.connectedX:
                 self.connectedX.discard(f.position)
                 f.disconnectX(self, w)
-                if f is self.nextHopToO[0][0]:
-                    self.nextHopToO[0] = (None, 99999)
-                if f is self.nextHopToO[1][0]:
-                    self.nextHopToO[1] = (None, 99999)
             elif f.position in self.oneWayConnectedX:
-                #print(self.position, f.position)
                 f.disconnectX(self, w)
 
     def connectO(self, f, mirrored=True):
@@ -129,14 +68,71 @@ class Field:
 
     def disconnectO(self, f, w=None):
         if (w != None or (f.initialFor != "X" and self.initialFor != "X")):
+            if f.position == self.nextHopToO[0][0]:
+                self.annihilateNextHopToO(0)
+            if f.position == self.nextHopToO[1][0]:
+                self.annihilateNextHopToO(1)
             f.oneWayConnectedO.discard(self.position)
             if f.position in self.connectedO:
                 self.connectedO.remove(f.position)
                 f.disconnectO(self, w)
-                if f is self.nextHopToX[0][0]:
-                    self.nextHopToX[0] = (None, 99999)
-                if f is self.nextHopToX[1][0]:
-                    self.nextHopToX[1] = (None, 99999)
             elif f.position in self.oneWayConnectedO:
-                #print(self.position, f.position)
                 f.disconnectO(self, w)
+
+    def annihilateNextHopToX(self, ind=0):
+        if self.nextHopToX[ind][0] != self.position:
+            self.nextHopToX[ind] = (None, 99999)
+            for n in self.connectedO | self.oneWayConnectedO:
+                if self.table.fields[n].nextHopToX[ind][0] == self.position:
+                    self.table.fields[n].annihilateNextHopToX(ind)
+
+    def annihilateNextHopToO(self, ind=0):
+        if self.nextHopToO[ind][0] != self.position:
+            self.nextHopToO[ind] = (None, 99999)
+            for n in self.connectedX | self.oneWayConnectedX:
+                if self.table.fields[n].nextHopToO[ind][0] == self.position:
+                    self.table.fields[n].annihilateNextHopToO(ind)
+
+    def notifyNextHopToX(self, f, ind=0, change=False):
+        for n in self.connectedO:
+            if self.table.fields[n].nextHopToX[ind][1] < (self.nextHopToX[ind][1]-1):
+                self.nextHopToX[ind] = (
+                    self.table.fields[n].position, self.table.fields[n].nextHopToX[ind][1]+1)
+                change = True
+        if change:
+            for n in self.connectedO | self.oneWayConnectedO:
+                if self.table.fields[n] != f:
+                    self.table.fields[n].notifyNextHopToX(self, ind)
+
+    def notifyNextHopToO(self, f, ind=0, change=False):
+        for n in self.connectedX:
+            if self.table.fields[n].nextHopToO[ind][1] < (self.nextHopToO[ind][1]-1):
+                self.nextHopToO[ind] = (
+                    self.table.fields[n].position, self.table.fields[n].nextHopToO[ind][1]+1)
+                change = True
+        if change:
+            for n in self.connectedX | self.oneWayConnectedX:
+                if self.table.fields[n] != f:
+                    self.table.fields[n].notifyNextHopToO(self, ind)
+
+    def getShortestPathToX(self, ind=0):
+        path = []
+        nextHop = self
+        while nextHop != None:
+            path += [nextHop.position]
+            if nextHop != self.table.fields[nextHop.nextHopToX[ind][0]]:
+                nextHop = self.table.fields[nextHop.nextHopToX[ind][0]]
+            else:
+                nextHop = None
+        return path
+
+    def getShortestPathToO(self, ind=0):
+        path = []
+        nextHop = self
+        while nextHop != None:
+            path += [nextHop.position]
+            if nextHop != self.table.fields[nextHop.nextHopToO[ind][0]]:
+                nextHop = self.table.fields[nextHop.nextHopToO[ind][0]]
+            else:
+                nextHop = None
+        return path

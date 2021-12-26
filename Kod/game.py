@@ -1,10 +1,6 @@
 from view import View
-from player import Player
 from table import Table
 from sys import setrecursionlimit
-from logging import basicConfig, DEBUG, info
-
-basicConfig(filename='C:/Users/Stefan/Desktop/MyLog.log', level=DEBUG)
 
 setrecursionlimit(128000)
 
@@ -36,15 +32,12 @@ class Game:
                     continue
             self.table.onInit(initial, playerInfo)
             self.next = self.table.X
-            try:
-                newStates = self.genNewStates()
-                ind = 1
-                print('Done :)')
-                for ns in newStates:
-                    print(ind, ns)
-                    ind += 1
-            except Exception as e:
-                info(e)
+            # newStates = self.genNewStates()
+            # ind = 1
+            # print('Done :)')
+            # for ns in newStates:
+            #     print(ind, ns)
+            #     ind += 1
         self.play()
 
     def play(self):
@@ -60,15 +53,6 @@ class Game:
                     self.view.showTable(*self.table.getData())
                     self.next = self.table.X if self.next.name == self.table.O.name else self.table.O
                     self.table.checkState()
-                    try:
-                        newStates = self.genNewStates()
-                        ind = 1
-                        print('Done :)')
-                        for ns in newStates:
-                            print(ind, ns)
-                            ind += 1
-                    except Exception as e:
-                        info(e)
                 else:
                     print(validated[1])
             else:
@@ -93,32 +77,28 @@ class Game:
         newStates = list()
         if self.next.name == "X":
             for pos in self.next.getCurrectPositions():
-                for n in self.table.fields[pos[0] - 1][pos[1] - 1].connectedX:
+                for n in self.table.fields[pos].connectedX:
                     for bws in blueWallStates:
                         temp = bws.getCopy()
-                        temp.setGamePiece(
-                            pos, (n[0]+1, n[1]+1), self.next.name)
+                        temp.setGamePiece(pos, (n[0], n[1]), self.next.name)
                         if temp.canBothPlayersFinish():
                             newStates.append(temp)
                     for gws in greenWallStates:
                         temp = gws.getCopy()
-                        temp.setGamePiece(
-                            pos, (n[0]+1, n[1]+1), self.next.name)
+                        temp.setGamePiece(pos, (n[0], n[1]), self.next.name)
                         if temp.canBothPlayersFinish():
                             newStates.append(temp)
         elif self.next.name == "O":
             for pos in self.next.getCurrectPositions():
-                for n in self.table.fields[pos[0] - 1][pos[1] - 1].connectedO:
+                for n in self.table.fields[pos].connectedO:
                     for bws in blueWallStates:
                         temp = bws.getCopy()
-                        temp.setGamePiece(
-                            pos, (n[0]+1, n[1]+1), self.next.name)
+                        temp.setGamePiece(pos, (n[0], n[1]), self.next.name)
                         if temp.canBothPlayersFinish():
                             newStates.append(temp)
                     for gws in greenWallStates:
                         temp = gws.getCopy()
-                        temp.setGamePiece(
-                            pos, (n[0]+1, n[1]+1), self.next.name)
+                        temp.setGamePiece(pos, (n[0], n[1]), self.next.name)
                         if temp.canBothPlayersFinish():
                             newStates.append(temp)
         return newStates
@@ -175,12 +155,6 @@ class Game:
         else:
             ret += [None]
         return (True, ret)
-
-    # funkcija prvo za kopiranje trenutne tabele i odigravanja prosledjenog VALIDNOG poteza
-    # zatim funkicja koja vraca sve moguce poteze
-    # funkcija koja validira te poteze
-    # na kraju funkcija koja vrati listu svih tabela koje bi bile nakon ovih validno odigranih poteza
-    # kesiranje(maybe)?!?!?!
 
 
 def main():

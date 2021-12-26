@@ -3,28 +3,26 @@ from field import Field
 
 
 class Table:
-    def __init__(self, n=11, m=14, blueWalls=set(), greenWalls=set(), X=None, O=None, fields=list()):
+    def __init__(self, n=11, m=14, blueWalls=set(), greenWalls=set(), X=None, O=None):
         self.n = n
         self.m = m
-        self.blueWalls = blueWalls
-        self.greenWalls = greenWalls
-        self.fields = fields
-        self.X = X
-        self.O = O
+        self.blueWalls = set(blueWalls)
+        self.greenWalls = set(greenWalls)
+        self.fields = dict()
+        self.X = X.getCopy() if X else None
+        self.O = O.getCopy() if O else None
 
     def getCopy(self):
-        copy = Table(self.n, self.m, set(self.blueWalls), set(
-            self.greenWalls), self.X.getCopy(), self.O.getCopy(), list())
-        for row in self.fields:
-            copy.fields.append(list())
-            for f in row:
-                copy.fields[-1].append(f.getCopy(copy))
+        copy = Table(self.n, self.m, self.blueWalls,
+                     self.greenWalls, self.X, self.O)
+        for key in self.fields.keys():
+            copy.fields[key] = self.fields[key].getCopy(copy)
         return copy
 
     def onInit(self, initial, players):
         self.setPlayers(players)
         self.setFields(initial)
-        # self.setNextHops(initial)
+        self.setNextHops(initial)
 
     def setPlayers(self, players):
         for player in players.keys():
@@ -36,40 +34,49 @@ class Table:
     def setFields(self, initial):
         connectInitialX = []
         connectInitialO = []
-        for i in range(0, self.n):
-            self.fields.append([])
-            for j in range(0, self.m):
-                connectedX = set(Table.createManhattan(
-                    (i, j), 0, self.n-1, self.m-1, 2))
-                connectedO = set(Table.createManhattan(
-                    (i, j), 0, self.n-1, self.m-1, 2))
-                self.fields[i].append(
-                    Field(self, (i, j), initial.get((i+1, j+1), None), connectedX, connectedO))
-                match initial.get((i+1, j+1), None):
+        for i in range(1, self.n + 1):
+            for j in range(1, self.m + 1):
+                pos = (i, j)
+                connected = set(Table.createManhattan(
+                    pos, 1, self.n, self.m, 2))
+                self.fields[pos] = Field(self, pos, initial.get(
+                    pos, None), connected, connected)
+                match initial.get(pos, None):
                     case "X1" | "X2":
-                        position = (i+1, j+1)
-                        manGen = list(map(lambda x: ((position[0] - x[0], position[1] - x[1]), x),
-                                          Table.createManhattanGeneric(position, 1, self.n, self.m, 1)))
-                        connectInitialO += list(filter(lambda x: 0 < x[0][0] + x[1][0] <=
-                                                       self.n and 0 < x[0][1] + x[1][1] <= self.m, manGen))
+                        manGen = list(map(lambda x: ((pos[0] - x[0], pos[1] - x[1]), x),
+                                          Table.createManhattanGeneric(pos, 1, self.n, self.m, 1)))
+                        connectInitialO += list(filter(lambda x: 0 < x[0][0] <= self.n and 0 < x[0][0] + x[1][0] <=
+                                                       self.n and 0 < x[0][1] <= self.m and 0 < x[0][1] + x[1][1] <= self.m, manGen))
                     case "O1" | "O2":
-                        position = (i+1, j+1)
-                        manGen = list(map(lambda x: ((position[0] - x[0], position[1] - x[1]), x),
-                                          Table.createManhattanGeneric(position, 1, self.n, self.m, 1)))
-                        connectInitialX += list(filter(lambda x: 0 < x[0][0] + x[1][0] <=
-                                                       self.n and 0 < x[0][1] + x[1][1] <= self.m, manGen))
+                        manGen = list(map(lambda x: ((pos[0] - x[0], pos[1] - x[1]), x),
+                                          Table.createManhattanGeneric(pos, 1, self.n, self.m, 1)))
+                        connectInitialX += list(filter(lambda x: 0 < x[0][0] <= self.n and 0 < x[0][0] + x[1][0] <=
+                                                       self.n and 0 < x[0][1] <= self.m and 0 < x[0][1] + x[1][1] <= self.m, manGen))
         for k in initial.keys():
             self.setGamePiece(
-                (-100, -100), (k[0] + 1, k[1] + 1), initial.get(k)[0])
+                (-100, -100), (k[0], k[1]), initial.get(k)[0])
         self.connectO(connectInitialO, False)
         self.connectX(connectInitialX, False)
 
     def setNextHops(self, initial):
-        for row in self.fields:
-            for f in row:
-                for i in range(2):
-                    f.findNextHopToX(i)
-                    f.findNextHopToO(i)
+        for pos in initial.keys():
+            match initial[pos]:
+                case "X1":
+                    self.fields[pos].nextHopToX[0] = (pos, 0)
+                    self.fields[pos].notifyNextHopToX(
+                        self.fields[pos], 0, True)
+                case "X2":
+                    self.fields[pos].nextHopToX[1] = (pos, 0)
+                    self.fields[pos].notifyNextHopToX(
+                        self.fields[pos], 1, True)
+                case "O1":
+                    self.fields[pos].nextHopToO[0] = (pos, 0)
+                    self.fields[pos].notifyNextHopToO(
+                        self.fields[pos], 0, True)
+                case "O2":
+                    self.fields[pos].nextHopToO[1] = (pos, 0)
+                    self.fields[pos].notifyNextHopToO(
+                        self.fields[pos], 1, True)
 
     def getData(self):
         return (self.greenWalls, self.blueWalls, {"X": self.X.getCurrectPositions(), "O": self.O.getCurrectPositions()}, self.X.getWallNumber(), self.O.getWallNumber())
@@ -81,80 +88,79 @@ class Table:
             self.winner = self.X
 
     def setBlueWall(self, pos):
-        if self.isCorrectBlueWall(pos):
-            self.blueWalls.add(pos)
-            forDisconnect = []
-            up1 = (pos[0] - 1) > 0
-            down1 = (pos[0] + 1) <= self.n
-            down2 = (pos[0] + 2) <= self.n
-            left1 = (pos[1] - 1) > 0
-            right1 = (pos[1] + 1) <= self.m
-            right2 = (pos[1] + 2) <= self.m
+        self.blueWalls.add(pos)
+        forDisconnect = []
+        up1 = (pos[0] - 1) > 0
+        down1 = (pos[0] + 1) <= self.n
+        down2 = (pos[0] + 2) <= self.n
+        left1 = (pos[1] - 1) > 0
+        right1 = (pos[1] + 1) <= self.m
+        right2 = (pos[1] + 2) <= self.m
 
-            if down1:
-                forDisconnect += [(pos, (1, 0))]
-                if right1:
-                    forDisconnect += [(pos, (1, 1))]
-                    forDisconnect += [((pos[0], pos[1] + 1), (1, -1)),
-                                      ((pos[0], pos[1] + 1), (1, 0))]
-                    if down2:
-                        forDisconnect += [((pos[0], pos[1] + 1), (2, 0))]
-                    if up1:
-                        forDisconnect += [((pos[0] + 1, pos[1] + 1), (-2, 0))]
-                if up1:
-                    forDisconnect += [((pos[0] + 1, pos[1]), (-2, 0))]
+        if down1:
+            forDisconnect += [(pos, (1, 0))]
+            if right1:
+                forDisconnect += [(pos, (1, 1))]
+                forDisconnect += [((pos[0], pos[1] + 1), (1, -1)),
+                                  ((pos[0], pos[1] + 1), (1, 0))]
                 if down2:
-                    forDisconnect += [(pos, (2, 0))]
-                if left1 and ((pos[0], pos[1]-2) in self.blueWalls or (pos[0]-1, pos[1]-1) in self.greenWalls or (pos[0]+1, pos[1]-1) in self.greenWalls):
-                    forDisconnect += [(pos, (1, -1)),
-                                      ((pos[0]+1, pos[1]), (-1, -1))]
-                if right2 and ((pos[0], pos[1]+2) in self.blueWalls or (pos[0]-1, pos[1]+1) in self.greenWalls or (pos[0]+1, pos[1]+1) in self.greenWalls):
-                    forDisconnect += [((pos[0], pos[1]+1), (1, 1)),
-                                      ((pos[0]+1, pos[1]+1), (-1, 1))]
+                    forDisconnect += [((pos[0], pos[1] + 1), (2, 0))]
+                if up1:
+                    forDisconnect += [((pos[0] + 1, pos[1] + 1), (-2, 0))]
+            if up1:
+                forDisconnect += [((pos[0] + 1, pos[1]), (-2, 0))]
+            if down2:
+                forDisconnect += [(pos, (2, 0))]
+            if left1 and ((pos[0], pos[1]-2) in self.blueWalls or (pos[0]-1, pos[1]-1) in self.greenWalls or (pos[0]+1, pos[1]-1) in self.greenWalls):
+                forDisconnect += [(pos, (1, -1)),
+                                  ((pos[0]+1, pos[1]), (-1, -1))]
+            if right2 and ((pos[0], pos[1]+2) in self.blueWalls or (pos[0]-1, pos[1]+1) in self.greenWalls or (pos[0]+1, pos[1]+1) in self.greenWalls):
+                forDisconnect += [((pos[0], pos[1]+1), (1, 1)),
+                                  ((pos[0]+1, pos[1]+1), (-1, 1))]
 
-            self.disconnect(forDisconnect, "P")
+        self.disconnect(forDisconnect, "P")
 
     def setGreenWall(self, pos):
-        if self.isCorrectGreenWall(pos):
-            self.greenWalls.add(pos)
-            forDisconnect = []
-            up1 = (pos[0] - 1) > 0
-            down1 = (pos[0] + 1) <= self.n
-            down2 = (pos[0] + 2) <= self.n
-            left1 = (pos[1] - 1) > 0
-            right1 = (pos[1] + 1) <= self.m
-            right2 = (pos[1] + 2) <= self.m
+        self.greenWalls.add(pos)
+        forDisconnect = []
+        up1 = (pos[0] - 1) > 0
+        down1 = (pos[0] + 1) <= self.n
+        down2 = (pos[0] + 2) <= self.n
+        left1 = (pos[1] - 1) > 0
+        right1 = (pos[1] + 1) <= self.m
+        right2 = (pos[1] + 2) <= self.m
 
-            if right1:
-                forDisconnect += [(pos, (0, 1))]
-                if down1:
-                    forDisconnect += [(pos, (1, 1))]
-                    forDisconnect += [((pos[0] + 1, pos[1]), (-1, 1)),
-                                      ((pos[0] + 1, pos[1]), (0, 1))]
-                    if left1:
-                        forDisconnect += [((pos[0] + 1, pos[1] + 1), (0, -2))]
-                    if down2 and ((pos[0]+2, pos[1]) in self.greenWalls or (pos[0]+1, pos[1]-1) in self.blueWalls or (pos[0]+1, pos[1]+1) in self.blueWalls):
-                        forDisconnect += [((pos[0]+1, pos[1]), (1, 1)),
-                                          ((pos[0] + 1, pos[1] + 1), (1, -1))]
-                    forDisconnect += [((pos[0], pos[1] + 1), (0, -2))]
-                if up1 and ((pos[0]-2, pos[1]) in self.greenWalls or (pos[0]-1, pos[1]-1) in self.blueWalls or (pos[0]-1, pos[1]+1) in self.blueWalls):
-                    forDisconnect += [(pos, (-1, 1)),
-                                      ((pos[0], pos[1] + 1), (-1, -1))]
-            if right2:
-                forDisconnect += [(pos, (0, 2))]
-                if down1:
-                    forDisconnect += [((pos[0] + 1, pos[1]), (0, 2))]
-            self.disconnect(forDisconnect, "Z")
+        if right1:
+            forDisconnect += [(pos, (0, 1))]
+            if down1:
+                forDisconnect += [(pos, (1, 1))]
+                forDisconnect += [((pos[0] + 1, pos[1]), (-1, 1)),
+                                  ((pos[0] + 1, pos[1]), (0, 1))]
+                if left1:
+                    forDisconnect += [((pos[0] + 1, pos[1] + 1), (0, -2))]
+                if down2 and ((pos[0]+2, pos[1]) in self.greenWalls or (pos[0]+1, pos[1]-1) in self.blueWalls or (pos[0]+1, pos[1]+1) in self.blueWalls):
+                    forDisconnect += [((pos[0]+1, pos[1]), (1, 1)),
+                                      ((pos[0] + 1, pos[1] + 1), (1, -1))]
+            if up1 and ((pos[0]-2, pos[1]) in self.greenWalls or (pos[0]-1, pos[1]-1) in self.blueWalls or (pos[0]-1, pos[1]+1) in self.blueWalls):
+                forDisconnect += [(pos, (-1, 1)),
+                                  ((pos[0], pos[1] + 1), (-1, -1))]
+            if left1:
+                forDisconnect += [((pos[0], pos[1] + 1), (0, -2))]
+        if right2:
+            forDisconnect += [(pos, (0, 2))]
+            if down1:
+                forDisconnect += [((pos[0] + 1, pos[1]), (0, 2))]
+        self.disconnect(forDisconnect, "Z")
 
     def setGamePiece(self, prevPos, position, name="X"):
         forConnect = list(map(lambda x: ((position[0] - x[0] * 2, position[1] - x[1] * 2), x),
                               Table.createManhattanGeneric(position, 1, self.n, self.m, 1)))
-        forConnect = list(filter(lambda x: 0 < x[0][0] + x[1][0] <
-                                 self.n and 0 < x[0][1] + x[1][1] < self.m, forConnect))
+        forConnect = list(filter(lambda x: 0 < x[0][0] <= self.n and 0 < x[0][0] + x[1][0] <=
+                                 self.n and 0 < x[0][1] <= self.m and 0 < x[0][1] + x[1][1] <= self.m, forConnect))
         forPrevConnect = list(map(lambda x: ((prevPos[0] - x[0] * 2, prevPos[1] - x[1] * 2), x),
                                   Table.createManhattanGeneric(prevPos, 1, self.n, self.m, 1)))
-        forPrevConnect = list(filter(lambda x: 0 < x[0][0] + x[1][0] <
-                                     self.n and 0 < x[0][1] + x[1][1] < self.m, forPrevConnect))
+        forPrevConnect = list(filter(lambda x: 0 < x[0][0] <= self.n and 0 < x[0][0] + x[1][0] <=
+                                     self.n and 0 < x[0][1] <= self.m and 0 < x[0][1] + x[1][1] <= self.m, forPrevConnect))
         forDisconnect = Table.createManhattanGeneric(
             position, 1, self.n, self.m, 2)
         forDisconnect = list(zip([position]*len(forDisconnect), forDisconnect))
@@ -162,7 +168,6 @@ class Table:
             prevPos, 1, self.n, self.m, 2)
         forPrevDisconnect = list(
             zip([prevPos]*len(forPrevDisconnect), forPrevDisconnect))
-
         if name == "X":
             self.disconnectO(forDisconnect + forPrevConnect)
             self.connectO(forConnect, False, position)
@@ -174,90 +179,97 @@ class Table:
 
     def connect(self, vals):
         for (x, y) in vals:
-            self.fields[x[0] - 1][x[1] - 1].connect(
-                self.fields[x[0] - 1 + y[0]][x[1] - 1 + y[1]])
-        # for (x, y) in vals:
-        #     for f in [self.fields[x[0] - 1][x[1] - 1], self.fields[x[0]-1 + y[0]][x[1]-1 + y[1]]]:
-        #         f.findNextHopToX(0)
-        #         f.findNextHopToX(1)
-        #         f.findNextHopToO(0)
-        #         f.findNextHopToO(1)
+            self.fields[x].connect(self.fields[(x[0] + y[0], x[1] + y[1])])
+        for (x, y) in vals:
+            f = self.fields[(x[0] + y[0], x[1] + y[1])]
+            if self.fields[x].nextHopToX[0][1] > f.nextHopToX[0][1] + 1:
+                self.fields[x].notifyNextHopToX(f, 0, False)
+            if self.fields[x].nextHopToX[1][1] > f.nextHopToX[1][1] + 1:
+                self.fields[x].notifyNextHopToX(f, 1, False)
+            if self.fields[x].nextHopToO[0][1] > f.nextHopToO[0][1] + 1:
+                self.fields[x].notifyNextHopToO(f, 0, False)
+            if self.fields[x].nextHopToO[1][1] > f.nextHopToO[1][1] + 1:
+                self.fields[x].notifyNextHopToO(f, 1, False)
 
     def connectX(self, vals, mirrored=True, position=None):
         if position:
-            con = [(x, y) for (x, y) in vals if (x[0]-1, x[1]-1)
-                   in self.fields[position[0] - 1][position[1] - 1].connectedO]
+            con = [(x, y) for (x, y) in vals if x
+                   in self.fields[position].connectedO]
             for (x, y) in con:
-                self.fields[x[0] - 1][x[1] - 1].connectX(
-                    self.fields[x[0] - 1 + y[0]][x[1] - 1 + y[1]], mirrored)
+                self.fields[x].connectX(
+                    self.fields[(x[0] + y[0], x[1] + y[1])], mirrored)
+            for (x, y) in vals:
+                f = self.fields[(x[0] + y[0], x[1] + y[1])]
+                if self.fields[x].nextHopToO[0][1] > f.nextHopToO[0][1] + 1:
+                    self.fields[x].notifyNextHopToO(f, 0, False)
+                if self.fields[x].nextHopToO[1][1] > f.nextHopToO[1][1] + 1:
+                    self.fields[x].notifyNextHopToO(f, 1, False)
         else:
             for (x, y) in vals:
-                self.fields[x[0] - 1][x[1] - 1].connectX(
-                    self.fields[x[0] - 1 + y[0]][x[1] - 1 + y[1]], mirrored)
-        # for (x, y) in vals:
-        #     for f in [self.fields[x[0] - 1][x[1] - 1], self.fields[x[0]-1 + y[0]][x[1]-1 + y[1]]]:
-        #         f.findNextHopToO(0)
-        #         f.findNextHopToO(1)
+                self.fields[x].connectX(
+                    self.fields[(x[0] + y[0], x[1] + y[1])], mirrored)
+            for (x, y) in vals:
+                f = self.fields[(x[0] + y[0], x[1] + y[1])]
+                if self.fields[x].nextHopToO[0][1] > f.nextHopToO[0][1] + 1:
+                    self.fields[x].notifyNextHopToO(f, 0, False)
+                if self.fields[x].nextHopToO[1][1] > f.nextHopToO[1][1] + 1:
+                    self.fields[x].notifyNextHopToO(f, 1, False)
 
     def connectO(self, vals, mirrored=True, position=None):
         if position:
-            con = [(x, y) for (x, y) in vals if (x[0]-1, x[1]-1)
-                   in self.fields[position[0] - 1][position[1] - 1].connectedX]
+            con = [(x, y) for (x, y) in vals if x
+                   in self.fields[position].connectedX]
             for (x, y) in con:
-                self.fields[x[0] - 1][x[1] - 1].connectO(
-                    self.fields[x[0] - 1 + y[0]][x[1] - 1 + y[1]], mirrored)
+                self.fields[x].connectO(
+                    self.fields[(x[0] + y[0], x[1] + y[1])], mirrored)
+            for (x, y) in vals:
+                f = self.fields[(x[0] + y[0], x[1] + y[1])]
+                if self.fields[x].nextHopToX[0][1] > f.nextHopToX[0][1] + 1:
+                    self.fields[x].notifyNextHopToX(f, 0, False)
+                if self.fields[x].nextHopToX[1][1] > f.nextHopToX[1][1] + 1:
+                    self.fields[x].notifyNextHopToX(f, 1, False)
         else:
             for (x, y) in vals:
-                self.fields[x[0] - 1][x[1] - 1].connectO(
-                    self.fields[x[0] - 1 + y[0]][x[1] - 1 + y[1]], mirrored)
-        # for (x, y) in vals:
-        #     for f in [self.fields[x[0] - 1][x[1] - 1], self.fields[x[0]-1 + y[0]][x[1]-1 + y[1]]]:
-        #         f.findNextHopToX(0)
-        #         f.findNextHopToX(1)
+                self.fields[x].connectO(
+                    self.fields[(x[0] + y[0], x[1] + y[1])], mirrored)
+            for (x, y) in vals:
+                f = self.fields[(x[0] + y[0], x[1] + y[1])]
+                if self.fields[x].nextHopToX[0][1] > f.nextHopToX[0][1] + 1:
+                    self.fields[x].notifyNextHopToX(f, 0, False)
+                if self.fields[x].nextHopToX[1][1] > f.nextHopToX[1][1] + 1:
+                    self.fields[x].notifyNextHopToX(f, 1, False)
 
     def disconnect(self, vals, w=None):
         for (x, y) in vals:
-            self.fields[x[0]-1][x[1]-1].disconnect(
-                self.fields[x[0]-1 + y[0]][x[1]-1 + y[1]], w)
-        # for (x, y) in vals:
-        #     for f in [self.fields[x[0] - 1][x[1] - 1], self.fields[x[0]-1 + y[0]][x[1]-1 + y[1]]]:
-        #         if f.nextHopToX[0][0] == None:
-        #             f.findNextHopToX(0)
-        #         if f.nextHopToX[1][0] == None:
-        #             f.findNextHopToX(1)
-        #         if f.nextHopToO[0][0] == None:
-        #             f.findNextHopToO(0)
-        #         if f.nextHopToO[1][0] == None:
-        #             f.findNextHopToO(1)
+            self.fields[x].disconnect(
+                self.fields[(x[0] + y[0], x[1] + y[1])], w)
+        for (x, y) in vals:
+            self.fields[x].notifyNextHopToX(None, 0, False)
+            self.fields[x].notifyNextHopToX(None, 1, False)
+            self.fields[x].notifyNextHopToO(None, 0, False)
+            self.fields[x].notifyNextHopToO(None, 1, False)
 
     def disconnectX(self, vals):
         for (x, y) in vals:
-            self.fields[x[0]-1][x[1]-1].disconnectX(
-                self.fields[x[0]-1 + y[0]][x[1]-1 + y[1]])
-        # for (x, y) in vals:
-        #     for f in [self.fields[x[0] - 1][x[1] - 1], self.fields[x[0]-1 + y[0]][x[1]-1 + y[1]]]:
-        #         if f.nextHopToO[0][0] == None:
-        #             f.findNextHopToO(0)
-        #         if f.nextHopToO[1][0] == None:
-        #             f.findNextHopToO(1)
+            self.fields[x].disconnectX(
+                self.fields[(x[0] + y[0], x[1] + y[1])])
+        for (x, y) in vals:
+            self.fields[x].notifyNextHopToO(None, 0, False)
+            self.fields[x].notifyNextHopToO(None, 1, False)
 
     def disconnectO(self, vals):
         for (x, y) in vals:
-            self.fields[x[0]-1][x[1]-1].disconnectO(
-                self.fields[x[0]-1 + y[0]][x[1]-1 + y[1]])
-        # for (x, y) in vals:
-        #     for f in [self.fields[x[0] - 1][x[1] - 1], self.fields[x[0]-1 + y[0]][x[1]-1 + y[1]]]:
-        #         if f.nextHopToX[0][0] == None:
-        #             f.findNextHopToX(0)
-        #         if f.nextHopToX[1][0] == None:
-        #             f.findNextHopToX(1)
+            self.fields[x].disconnectO(
+                self.fields[(x[0] + y[0], x[1] + y[1])])
+        for (x, y) in vals:
+            self.fields[x].notifyNextHopToX(None, 0, False)
+            self.fields[x].notifyNextHopToX(None, 1, False)
 
     def areConnected(self, currentPos, followedPos, name="X"):
         if name == "X":
-            return (followedPos[0] - 1, followedPos[1] - 1) in self.fields[currentPos[0] - 1][currentPos[1] - 1].connectedX
+            return followedPos in self.fields[currentPos].connectedX
         else:
-            print(self.fields[currentPos[0] - 1][currentPos[1] - 1].connectedO)
-            return (followedPos[0] - 1, followedPos[1] - 1) in self.fields[currentPos[0] - 1][currentPos[1] - 1].connectedO
+            return followedPos in self.fields[currentPos].connectedO
 
     def isCorrectBlueWall(self, pos):
         return not (pos in self.greenWalls or
@@ -276,32 +288,32 @@ class Table:
             if wall[0] == "P":
                 self.setBlueWall((wall[1], wall[2]))
         self.setGamePiece(currentPos, nextPos, name)
-        # if self.canPlayerXFinish():
-        #     xPos1 = self.X.firstGP.position
-        #     xPos2 = self.X.secondGP.position
-        #     print("Shortest path X1 to O1:",
-        #           self.fields[xPos1[0]-1][xPos1[1]-1].getShortestPathToO(0))
-        #     print("Shortest path X1 to O2:",
-        #           self.fields[xPos1[0]-1][xPos1[1]-1].getShortestPathToO(1))
-        #     print("Shortest path X2 to O1:",
-        #           self.fields[xPos2[0]-1][xPos2[1]-1].getShortestPathToO(0))
-        #     print("Shortest path X2 to O2:",
-        #           self.fields[xPos2[0]-1][xPos2[1]-1].getShortestPathToO(1))
-        # else:
-        #     print("Player X can't finish!")
-        # if self.canPlayerOFinish():
-        #     oPos1 = self.O.firstGP.position
-        #     oPos2 = self.O.secondGP.position
-        #     print("Shortest path O1 to X1:",
-        #           self.fields[oPos1[0]-1][oPos1[1]-1].getShortestPathToX(0))
-        #     print("Shortest path O1 to X2:",
-        #           self.fields[oPos1[0]-1][oPos1[1]-1].getShortestPathToX(1))
-        #     print("Shortest path O2 to X1:",
-        #           self.fields[oPos2[0]-1][oPos2[1]-1].getShortestPathToX(0))
-        #     print("Shortest path O2 to X2:",
-        #           self.fields[oPos2[0]-1][oPos2[1]-1].getShortestPathToX(1))
-        # else:
-        #     print("Player O can't finish!")
+        if self.canPlayerXFinish():
+            xPos1 = self.X.firstGP.position
+            xPos2 = self.X.secondGP.position
+            print("Shortest path X1 to O1:",
+                  self.fields[xPos1].getShortestPathToO(0))
+            print("Shortest path X1 to O2:",
+                  self.fields[xPos1].getShortestPathToO(1))
+            print("Shortest path X2 to O1:",
+                  self.fields[xPos2].getShortestPathToO(0))
+            print("Shortest path X2 to O2:",
+                  self.fields[xPos2].getShortestPathToO(1))
+        else:
+            print("Player X can't finish!")
+        if self.canPlayerOFinish():
+            oPos1 = self.O.firstGP.position
+            oPos2 = self.O.secondGP.position
+            print("Shortest path O1 to X1:",
+                  self.fields[oPos1].getShortestPathToX(0))
+            print("Shortest path O1 to X2:",
+                  self.fields[oPos1].getShortestPathToX(1))
+            print("Shortest path O2 to X1:",
+                  self.fields[oPos2].getShortestPathToX(0))
+            print("Shortest path O2 to X2:",
+                  self.fields[oPos2].getShortestPathToX(1))
+        else:
+            print("Player O can't finish!")
 
     @staticmethod
     def createManhattan(currentPos, low, highN, highM, dStep):
@@ -318,14 +330,14 @@ class Table:
         return abs(currentPos[0] - followedPos[0]) + abs(currentPos[1] - followedPos[1]) == dStep
 
     def canBothPlayersFinish(self):
-        return True  # self.canPlayerXFinish() and self.canPlayerOFinish()
+        return self.canPlayerXFinish() and self.canPlayerOFinish()
 
     def canPlayerXFinish(self):
         xPos1 = self.X.firstGP.position
         xPos2 = self.X.secondGP.position
-        return None not in [self.fields[xPos1[0]-1][xPos1[1]-1].nextHopToO[0][0], self.fields[xPos1[0]-1][xPos1[1]-1].nextHopToO[1][0], self.fields[xPos2[0]-1][xPos2[1]-1].nextHopToO[0][0], self.fields[xPos2[0]-1][xPos2[1]-1].nextHopToO[1][0]]
+        return None not in [self.fields[xPos1].nextHopToO[0][0], self.fields[xPos1].nextHopToO[1][0], self.fields[xPos2].nextHopToO[0][0], self.fields[xPos2].nextHopToO[1][0]]
 
     def canPlayerOFinish(self):
         oPos1 = self.O.firstGP.position
         oPos2 = self.O.secondGP.position
-        return None not in [self.fields[oPos1[0]-1][oPos1[1]-1].nextHopToX[0][0], self.fields[oPos1[0]-1][oPos1[1]-1].nextHopToX[1][0], self.fields[oPos2[0]-1][oPos2[1]-1].nextHopToX[0][0], self.fields[oPos2[0]-1][oPos2[1]-1].nextHopToX[1][0]]
+        return None not in [self.fields[oPos1].nextHopToX[0][0], self.fields[oPos1].nextHopToX[1][0], self.fields[oPos2].nextHopToX[0][0], self.fields[oPos2].nextHopToX[1][0]]
