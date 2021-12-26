@@ -182,14 +182,10 @@ class Table:
             self.fields[x].connect(self.fields[(x[0] + y[0], x[1] + y[1])])
         for (x, y) in vals:
             f = self.fields[(x[0] + y[0], x[1] + y[1])]
-            if self.fields[x].nextHopToX[0][1] > f.nextHopToX[0][1] + 1:
-                self.fields[x].notifyNextHopToX(f, 0, False)
-            if self.fields[x].nextHopToX[1][1] > f.nextHopToX[1][1] + 1:
-                self.fields[x].notifyNextHopToX(f, 1, False)
-            if self.fields[x].nextHopToO[0][1] > f.nextHopToO[0][1] + 1:
-                self.fields[x].notifyNextHopToO(f, 0, False)
-            if self.fields[x].nextHopToO[1][1] > f.nextHopToO[1][1] + 1:
-                self.fields[x].notifyNextHopToO(f, 1, False)
+            self.fields[x].notifyNextHopToX(f, 0, False)
+            self.fields[x].notifyNextHopToX(f, 1, False)
+            self.fields[x].notifyNextHopToO(f, 0, False)
+            self.fields[x].notifyNextHopToO(f, 1, False)
 
     def connectX(self, vals, mirrored=True, position=None):
         if position:
@@ -200,20 +196,16 @@ class Table:
                     self.fields[(x[0] + y[0], x[1] + y[1])], mirrored)
             for (x, y) in vals:
                 f = self.fields[(x[0] + y[0], x[1] + y[1])]
-                if self.fields[x].nextHopToO[0][1] > f.nextHopToO[0][1] + 1:
-                    self.fields[x].notifyNextHopToO(f, 0, False)
-                if self.fields[x].nextHopToO[1][1] > f.nextHopToO[1][1] + 1:
-                    self.fields[x].notifyNextHopToO(f, 1, False)
+                self.fields[x].notifyNextHopToO(f, 0, False)
+                self.fields[x].notifyNextHopToO(f, 1, False)
         else:
             for (x, y) in vals:
                 self.fields[x].connectX(
                     self.fields[(x[0] + y[0], x[1] + y[1])], mirrored)
             for (x, y) in vals:
                 f = self.fields[(x[0] + y[0], x[1] + y[1])]
-                if self.fields[x].nextHopToO[0][1] > f.nextHopToO[0][1] + 1:
-                    self.fields[x].notifyNextHopToO(f, 0, False)
-                if self.fields[x].nextHopToO[1][1] > f.nextHopToO[1][1] + 1:
-                    self.fields[x].notifyNextHopToO(f, 1, False)
+                self.fields[x].notifyNextHopToO(f, 0, False)
+                self.fields[x].notifyNextHopToO(f, 1, False)
 
     def connectO(self, vals, mirrored=True, position=None):
         if position:
@@ -224,20 +216,16 @@ class Table:
                     self.fields[(x[0] + y[0], x[1] + y[1])], mirrored)
             for (x, y) in vals:
                 f = self.fields[(x[0] + y[0], x[1] + y[1])]
-                if self.fields[x].nextHopToX[0][1] > f.nextHopToX[0][1] + 1:
-                    self.fields[x].notifyNextHopToX(f, 0, False)
-                if self.fields[x].nextHopToX[1][1] > f.nextHopToX[1][1] + 1:
-                    self.fields[x].notifyNextHopToX(f, 1, False)
+                self.fields[x].notifyNextHopToX(f, 0, False)
+                self.fields[x].notifyNextHopToX(f, 1, False)
         else:
             for (x, y) in vals:
                 self.fields[x].connectO(
                     self.fields[(x[0] + y[0], x[1] + y[1])], mirrored)
             for (x, y) in vals:
                 f = self.fields[(x[0] + y[0], x[1] + y[1])]
-                if self.fields[x].nextHopToX[0][1] > f.nextHopToX[0][1] + 1:
-                    self.fields[x].notifyNextHopToX(f, 0, False)
-                if self.fields[x].nextHopToX[1][1] > f.nextHopToX[1][1] + 1:
-                    self.fields[x].notifyNextHopToX(f, 1, False)
+                self.fields[x].notifyNextHopToX(f, 0, False)
+                self.fields[x].notifyNextHopToX(f, 1, False)
 
     def disconnect(self, vals, w=None):
         for (x, y) in vals:
@@ -280,6 +268,19 @@ class Table:
         return not (pos in self.blueWalls
                     or [x for x in [(pos[0] - 1, pos[1]), pos, (pos[0] + 1, pos[1])]
                         if x in self.greenWalls])
+
+    def canBothPlayersFinish(self):
+        return self.canPlayerXFinish() and self.canPlayerOFinish()
+
+    def canPlayerXFinish(self):
+        xPos1 = self.X.firstGP.position
+        xPos2 = self.X.secondGP.position
+        return None not in [self.fields[xPos1].nextHopToO[0][0], self.fields[xPos1].nextHopToO[1][0], self.fields[xPos2].nextHopToO[0][0], self.fields[xPos2].nextHopToO[1][0]]
+
+    def canPlayerOFinish(self):
+        oPos1 = self.O.firstGP.position
+        oPos2 = self.O.secondGP.position
+        return None not in [self.fields[oPos1].nextHopToX[0][0], self.fields[oPos1].nextHopToX[1][0], self.fields[oPos2].nextHopToX[0][0], self.fields[oPos2].nextHopToX[1][0]]
 
     def move(self, name, currentPos, nextPos, wall=None):
         if wall:
@@ -328,16 +329,3 @@ class Table:
     @staticmethod
     def isManhattan(currentPos, followedPos, dStep):
         return abs(currentPos[0] - followedPos[0]) + abs(currentPos[1] - followedPos[1]) == dStep
-
-    def canBothPlayersFinish(self):
-        return self.canPlayerXFinish() and self.canPlayerOFinish()
-
-    def canPlayerXFinish(self):
-        xPos1 = self.X.firstGP.position
-        xPos2 = self.X.secondGP.position
-        return None not in [self.fields[xPos1].nextHopToO[0][0], self.fields[xPos1].nextHopToO[1][0], self.fields[xPos2].nextHopToO[0][0], self.fields[xPos2].nextHopToO[1][0]]
-
-    def canPlayerOFinish(self):
-        oPos1 = self.O.firstGP.position
-        oPos2 = self.O.secondGP.position
-        return None not in [self.fields[oPos1].nextHopToX[0][0], self.fields[oPos1].nextHopToX[1][0], self.fields[oPos2].nextHopToX[0][0], self.fields[oPos2].nextHopToX[1][0]]

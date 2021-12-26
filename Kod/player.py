@@ -10,17 +10,20 @@ class Player:
         self.noGreenWalls = wallNumb[1]
         self.isComputer = isComputer
 
-    def getWallNumber(self):
-        return (self.noBlueWalls, self.noGreenWalls)
-
-    def getCurrectPositions(self):
-        return (self.firstGP.position, self.secondGP.position)
+    def getCopy(self):
+        return Player(self.name, self.isComputer, self.getWallNumber(), self.getInitialPositions(), self.getCurrectPositions())
 
     def getInitialPositions(self):
         return (self.firstGP.home, self.secondGP.home)
 
-    def getCopy(self):
-        return Player(self.name, self.isComputer, self.getWallNumber(), self.getInitialPositions(), self.getCurrectPositions())
+    def getCurrectPositions(self):
+        return (self.firstGP.position, self.secondGP.position)
+
+    def getWallNumber(self):
+        return (self.noBlueWalls, self.noGreenWalls)
+
+    def isWinner(self, positions):
+        return self.firstGP.position in positions or self.secondGP.position in positions
 
     def move(self, pieceNum, positon, wall=None):
         if pieceNum == 1:
@@ -33,6 +36,3 @@ class Player:
             elif wall[0].upper() == "P":
                 self.noBlueWalls -= 1
         return prevPos
-
-    def isWinner(self, positions):
-        return self.firstGP.position in positions or self.secondGP.position in positions

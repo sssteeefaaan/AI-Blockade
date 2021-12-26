@@ -32,12 +32,12 @@ class Game:
                     continue
             self.table.onInit(initial, playerInfo)
             self.next = self.table.X
-            # newStates = self.genNewStates()
-            # ind = 1
-            # print('Done :)')
-            # for ns in newStates:
-            #     print(ind, ns)
-            #     ind += 1
+            newStates = self.genNewStates()
+            ind = 1
+            print('Done :)')
+            for ns in newStates:
+                print(ind, ns)
+                ind += 1
         self.play()
 
     def play(self):
