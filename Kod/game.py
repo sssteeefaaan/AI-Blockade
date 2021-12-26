@@ -1,31 +1,28 @@
+from view import View
 from player import Player
 from table import Table
 
 
 class Game:
     def __init__(self, n=11, m=14, initial={(4, 4): "X1", (8, 4): "X2", (4, 11): "O1", (8, 11): "O2"}, wallNumb=9, greenWall="\u01c1", blueWall="\u2550", rowSep="\u23AF"):
-        self.table = Table(n, m, initial, wallNumb,
-                           greenWall, blueWall, rowSep)
-        self.table.X = None
-        self.table.O = None
+        self.table = Table(n, m, initial)
+        self.view = View(n, m, greenWall, blueWall, rowSep)
         self.next = None
         self.winner = None
 
     def start(self, wallNumb, initial):
         xPos = [x for x in initial.keys() if initial[x] in ["X1", "X2"]]
         oPos = [o for o in initial.keys() if initial[o] in ["O1", "O2"]]
+        self.view.showTable(self.table.greenWalls, self.table.blueWalls, {
+                            "X": xPos, "O": oPos}, (wallNumb, wallNumb), (wallNumb, wallNumb))
         while self.next is None:
             match input("X/o?\n"):
                 case ("X" | "x"):
-                    self.table.X = Player(
-                        "X", False, wallNumb, xPos[0], xPos[1])
-                    self.table.O = Player(
-                        "O", True, wallNumb, oPos[0], oPos[1])
+                    self.table.setPlayers({"X": (False, wallNumb, xPos[0], xPos[1]), "O": (
+                        True, wallNumb, oPos[0], oPos[1])})
                 case ("O" | "o"):
-                    self.table.O = Player(
-                        "O", True, wallNumb, oPos[0], oPos[1])
-                    self.table.X = Player(
-                        "X", False, wallNumb, xPos[0], xPos[1])
+                    self.table.setPlayers({"X": (True, wallNumb, xPos[0], xPos[1]), "O": (
+                        False, wallNumb, oPos[0], oPos[1])})
                 case _:
                     print("Invalid player selection input!")
                     continue
@@ -75,7 +72,8 @@ class Game:
                 if validated[0]:
                     self.table.move(self.next.name, self.next.move(
                         move[0][1], move[1], move[2]), move[1], move[2])
-
+                    self.view.showTable(self.table.greenWalls, self.table.blueWalls, {"X": self.table.X.getPositions(
+                    ), "O": self.table.O.getPositions()}, self.table.X.getWallNumber(), self.table.O.getWallNumber())
                     self.next = self.table.X if self.next.name == self.table.O.name else self.table.O
                     self.table.checkState()
                 else:

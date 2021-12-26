@@ -16,6 +16,12 @@ class Player:
         self.noGreenWalls = wallNumb
         self.isComputer = isComputer
 
+    def getWallNumber(self):
+        return (self.noBlueWalls, self.noGreenWalls)
+
+    def getPositions(self):
+        return (self.firstGP.position, self.secondGP.position)
+
     def move(self, pieceNum, positon, wall=None):
         if pieceNum == 1:
             prevPos = self.firstGP.move(positon)

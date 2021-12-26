@@ -1,10 +1,9 @@
 class View:
-    def __init__(self, n=11, m=14, wallNumb={'xBlue': 9, 'xGreen': 9, 'oBlue': 9, 'oGreen': 9}, greenWall="\u01c1", blueWall="\u2550", rowSep="\u23AF"):
+    def __init__(self, n=11, m=14, greenWall="\u01c1", blueWall="\u2550", rowSep="\u23AF"):
         self.n = n
         self.m = m
         self.greenWall = greenWall
         self.blueWall = blueWall
-        self.wallNumb = dict(wallNumb)
 
         self.template = [
             [" ",  *[(" " + (chr(j+48) if j < 10 else chr(j+55)))
@@ -19,45 +18,33 @@ class View:
                      for j in range(1, m + 1)], "  "]
         ]
 
-    def setPosition(self, i, j, placeholder=" ", refresh=False):
-        self.template[i + 1] = self.template[i + 1][:j << 1] + \
-            [placeholder] + self.template[i + 1][(j << 1) + 1:]
-        if refresh:
-            self.refresh()
+    def showTable(self, greenWalls, blueWalls, players, xWallNumb=(9, 9), oWallNumb=(9, 9)):
+        table = list()
+        for t in self.template:
+            table.append(list(t))
 
-    def setBlueWall(self, i, j, wallUpdate, refresh=False):
-        self.template[i + 1] = self.template[i + 1][:(self.m + 2 + j) << 1] + [
-            self.blueWall] + [" "] + [self.blueWall] + self.template[i + 1][((self.m + 2 + j) << 1) + 3:]
-        self.wallNumb[wallUpdate] -= 1
-        if refresh:
-            self.refresh()
+        for gw in greenWalls:
+            table[gw[0] + 1] = table[gw[0] + 1][:(gw[1] << 1) + 1] + [
+                self.greenWall] + table[gw[0] + 1][(gw[1] + 1) << 1:]
+            table[gw[0] + 2] = table[gw[0] + 2][:(gw[1] << 1) + 1] + [
+                self.greenWall] + table[gw[0] + 2][(gw[1] + 1) << 1:]
 
-    def setGreenWall(self, i, j, wallUpdate, refresh=False):
-        self.template[i + 1] = self.template[i +
-                                             1][:(j << 1) + 1] + [self.greenWall] + self.template[i + 1][(j + 1) << 1:]
-        self.template[i + 2] = self.template[i +
-                                             2][:(j << 1) + 1] + [self.greenWall] + self.template[i + 2][(j + 1) << 1:]
-        self.wallNumb[wallUpdate] -= 1
-        if refresh:
-            self.refresh()
+        for bw in blueWalls:
+            table[bw[0] + 1] = table[bw[0] + 1][:(self.m + 2 + bw[1]) << 1] + [
+                self.blueWall] + [" "] + [self.blueWall] + table[bw[0] + 1][((self.m + 2 + bw[1]) << 1) + 3:]
 
-    def refresh(self):
-        for r in self.template:
+        for player in players.keys():
+            for i in range(2):
+                table[players[player][i][0] + 1] = table[players[player][i][0] + 1][:players[player][i][1] << 1] + \
+                    [player] + table[players[player][i][0] +
+                                     1][(players[player][i][1] << 1) + 1:]
+
+        for r in table:
             for v in r:
                 print(v, end="")
             print()
         print("\n\tWalls X\t\t|\tWalls O")
         print(
-            f"\tB: {self.wallNumb['xBlue']}\t\t|\tB: {self.wallNumb['oBlue']}")
+            f"\tB: {xWallNumb[0]}\t\t|\tB: {oWallNumb[0]}")
         print(
-            f"\tG: {self.wallNumb['xGreen']}\t\t|\tG: {self.wallNumb['oGreen']}\n")
-
-    def move(self, name, currentPos, nextPos, wall):
-        self.setPosition(currentPos[0], currentPos[1])
-        self.setPosition(nextPos[0], nextPos[1], name)
-        if wall:
-            if wall[0].upper() == 'Z':
-                self.setGreenWall(wall[1], wall[2], name.lower()+"Green")
-            elif wall[0].upper() == 'P':
-                self.setBlueWall(wall[1], wall[2], name.lower()+"Blue")
-        self.refresh()
+            f"\tG: {xWallNumb[1]}\t\t|\tG: {oWallNumb[1]}\n")
