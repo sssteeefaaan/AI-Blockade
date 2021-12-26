@@ -1,6 +1,12 @@
 from view import View
 from player import Player
 from table import Table
+from sys import setrecursionlimit
+from logging import basicConfig, DEBUG, info
+
+basicConfig(filename='C:/Users/Stefan/Desktop/MyLog.log', level=DEBUG)
+
+setrecursionlimit(128000)
 
 
 class Game:
@@ -30,10 +36,18 @@ class Game:
                     continue
             self.table.onInit(initial, playerInfo)
             self.next = self.table.X
+            try:
+                newStates = self.genNewStates()
+                ind = 1
+                print('Done :)')
+                for ns in newStates:
+                    print(ind, ns)
+                    ind += 1
+            except Exception as e:
+                info(e)
         self.play()
 
     def play(self):
-        test = 5
         while not self.winner:
             parsedMove = Game.parseMove(input(
                 f"{self.next.name} is on the move!\n"))
@@ -41,22 +55,73 @@ class Game:
                 move = parsedMove[1]
                 validated = self.validation(move)
                 if validated[0]:
-                    test -= 1
                     self.table.move(self.next.name, self.next.move(
                         move[0][1], move[1], move[2]), move[1], move[2])
                     self.view.showTable(*self.table.getData())
                     self.next = self.table.X if self.next.name == self.table.O.name else self.table.O
                     self.table.checkState()
-                    if not test:
-                        temp = self.table.getCopy()
-
-                    if test == -5:
-                        self.table = temp
+                    try:
+                        newStates = self.genNewStates()
+                        ind = 1
+                        print('Done :)')
+                        for ns in newStates:
+                            print(ind, ns)
+                            ind += 1
+                    except Exception as e:
+                        info(e)
                 else:
                     print(validated[1])
             else:
                 print(parsedMove[1])
         print(f"{self.winner.name} won! Congrats!")
+
+    def genNewStates(self):
+        blueWallStates = list()
+        if self.next.noBlueWalls > 0:
+            for i in range(1, self.table.n):
+                for j in range(1, self.table.m):
+                    if self.table.isCorrectBlueWall((i, j)):
+                        blueWallStates.append(self.table.getCopy())
+                        blueWallStates[-1].setBlueWall((i, j))
+        greenWallStates = list()
+        if self.next.noGreenWalls > 0:
+            for i in range(1, self.table.n):
+                for j in range(1, self.table.m):
+                    if self.table.isCorrectGreenWall((i, j)):
+                        greenWallStates.append(self.table.getCopy())
+                        greenWallStates[-1].setGreenWall((i, j))
+        newStates = list()
+        if self.next.name == "X":
+            for pos in self.next.getCurrectPositions():
+                for n in self.table.fields[pos[0] - 1][pos[1] - 1].connectedX:
+                    for bws in blueWallStates:
+                        temp = bws.getCopy()
+                        temp.setGamePiece(
+                            pos, (n[0]+1, n[1]+1), self.next.name)
+                        if temp.canBothPlayersFinish():
+                            newStates.append(temp)
+                    for gws in greenWallStates:
+                        temp = gws.getCopy()
+                        temp.setGamePiece(
+                            pos, (n[0]+1, n[1]+1), self.next.name)
+                        if temp.canBothPlayersFinish():
+                            newStates.append(temp)
+        elif self.next.name == "O":
+            for pos in self.next.getCurrectPositions():
+                for n in self.table.fields[pos[0] - 1][pos[1] - 1].connectedO:
+                    for bws in blueWallStates:
+                        temp = bws.getCopy()
+                        temp.setGamePiece(
+                            pos, (n[0]+1, n[1]+1), self.next.name)
+                        if temp.canBothPlayersFinish():
+                            newStates.append(temp)
+                    for gws in greenWallStates:
+                        temp = gws.getCopy()
+                        temp.setGamePiece(
+                            pos, (n[0]+1, n[1]+1), self.next.name)
+                        if temp.canBothPlayersFinish():
+                            newStates.append(temp)
+        return newStates
 
     def validation(self, move):
         if self.next.name != move[0][0]:

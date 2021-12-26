@@ -107,15 +107,16 @@ class Field:
 
     def disconnectX(self, f, w=None):
         if (w != None or (f.initialFor != "O" and self.initialFor != "O")):
+            f.oneWayConnectedX.discard(self.position)
             if f.position in self.connectedX:
                 self.connectedX.discard(f.position)
-                f.oneWayConnectedX.discard(self.position)
                 f.disconnectX(self, w)
                 if f is self.nextHopToO[0][0]:
                     self.nextHopToO[0] = (None, 99999)
                 if f is self.nextHopToO[1][0]:
                     self.nextHopToO[1] = (None, 99999)
             elif f.position in self.oneWayConnectedX:
+                #print(self.position, f.position)
                 f.disconnectX(self, w)
 
     def connectO(self, f, mirrored=True):
@@ -128,13 +129,14 @@ class Field:
 
     def disconnectO(self, f, w=None):
         if (w != None or (f.initialFor != "X" and self.initialFor != "X")):
+            f.oneWayConnectedO.discard(self.position)
             if f.position in self.connectedO:
                 self.connectedO.remove(f.position)
-                f.oneWayConnectedO.discard(self.position)
                 f.disconnectO(self, w)
                 if f is self.nextHopToX[0][0]:
                     self.nextHopToX[0] = (None, 99999)
                 if f is self.nextHopToX[1][0]:
                     self.nextHopToX[1] = (None, 99999)
             elif f.position in self.oneWayConnectedO:
+                #print(self.position, f.position)
                 f.disconnectO(self, w)

@@ -24,7 +24,7 @@ class Table:
     def onInit(self, initial, players):
         self.setPlayers(players)
         self.setFields(initial)
-        self.setNextHops(initial)
+        # self.setNextHops(initial)
 
     def setPlayers(self, players):
         for player in players.keys():
@@ -176,12 +176,12 @@ class Table:
         for (x, y) in vals:
             self.fields[x[0] - 1][x[1] - 1].connect(
                 self.fields[x[0] - 1 + y[0]][x[1] - 1 + y[1]])
-        for (x, y) in vals:
-            for f in [self.fields[x[0] - 1][x[1] - 1], self.fields[x[0]-1 + y[0]][x[1]-1 + y[1]]]:
-                f.findNextHopToX(0)
-                f.findNextHopToX(1)
-                f.findNextHopToO(0)
-                f.findNextHopToO(1)
+        # for (x, y) in vals:
+        #     for f in [self.fields[x[0] - 1][x[1] - 1], self.fields[x[0]-1 + y[0]][x[1]-1 + y[1]]]:
+        #         f.findNextHopToX(0)
+        #         f.findNextHopToX(1)
+        #         f.findNextHopToO(0)
+        #         f.findNextHopToO(1)
 
     def connectX(self, vals, mirrored=True, position=None):
         if position:
@@ -194,10 +194,10 @@ class Table:
             for (x, y) in vals:
                 self.fields[x[0] - 1][x[1] - 1].connectX(
                     self.fields[x[0] - 1 + y[0]][x[1] - 1 + y[1]], mirrored)
-        for (x, y) in vals:
-            for f in [self.fields[x[0] - 1][x[1] - 1], self.fields[x[0]-1 + y[0]][x[1]-1 + y[1]]]:
-                f.findNextHopToO(0)
-                f.findNextHopToO(1)
+        # for (x, y) in vals:
+        #     for f in [self.fields[x[0] - 1][x[1] - 1], self.fields[x[0]-1 + y[0]][x[1]-1 + y[1]]]:
+        #         f.findNextHopToO(0)
+        #         f.findNextHopToO(1)
 
     def connectO(self, vals, mirrored=True, position=None):
         if position:
@@ -210,47 +210,47 @@ class Table:
             for (x, y) in vals:
                 self.fields[x[0] - 1][x[1] - 1].connectO(
                     self.fields[x[0] - 1 + y[0]][x[1] - 1 + y[1]], mirrored)
-        for (x, y) in vals:
-            for f in [self.fields[x[0] - 1][x[1] - 1], self.fields[x[0]-1 + y[0]][x[1]-1 + y[1]]]:
-                f.findNextHopToX(0)
-                f.findNextHopToX(1)
+        # for (x, y) in vals:
+        #     for f in [self.fields[x[0] - 1][x[1] - 1], self.fields[x[0]-1 + y[0]][x[1]-1 + y[1]]]:
+        #         f.findNextHopToX(0)
+        #         f.findNextHopToX(1)
 
     def disconnect(self, vals, w=None):
         for (x, y) in vals:
             self.fields[x[0]-1][x[1]-1].disconnect(
                 self.fields[x[0]-1 + y[0]][x[1]-1 + y[1]], w)
-        for (x, y) in vals:
-            for f in [self.fields[x[0] - 1][x[1] - 1], self.fields[x[0]-1 + y[0]][x[1]-1 + y[1]]]:
-                if f.nextHopToX[0][0] == None:
-                    f.findNextHopToX(0)
-                if f.nextHopToX[1][0] == None:
-                    f.findNextHopToX(1)
-                if f.nextHopToO[0][0] == None:
-                    f.findNextHopToO(0)
-                if f.nextHopToO[1][0] == None:
-                    f.findNextHopToO(1)
+        # for (x, y) in vals:
+        #     for f in [self.fields[x[0] - 1][x[1] - 1], self.fields[x[0]-1 + y[0]][x[1]-1 + y[1]]]:
+        #         if f.nextHopToX[0][0] == None:
+        #             f.findNextHopToX(0)
+        #         if f.nextHopToX[1][0] == None:
+        #             f.findNextHopToX(1)
+        #         if f.nextHopToO[0][0] == None:
+        #             f.findNextHopToO(0)
+        #         if f.nextHopToO[1][0] == None:
+        #             f.findNextHopToO(1)
 
     def disconnectX(self, vals):
         for (x, y) in vals:
             self.fields[x[0]-1][x[1]-1].disconnectX(
                 self.fields[x[0]-1 + y[0]][x[1]-1 + y[1]])
-        for (x, y) in vals:
-            for f in [self.fields[x[0] - 1][x[1] - 1], self.fields[x[0]-1 + y[0]][x[1]-1 + y[1]]]:
-                if f.nextHopToO[0][0] == None:
-                    f.findNextHopToO(0)
-                if f.nextHopToO[1][0] == None:
-                    f.findNextHopToO(1)
+        # for (x, y) in vals:
+        #     for f in [self.fields[x[0] - 1][x[1] - 1], self.fields[x[0]-1 + y[0]][x[1]-1 + y[1]]]:
+        #         if f.nextHopToO[0][0] == None:
+        #             f.findNextHopToO(0)
+        #         if f.nextHopToO[1][0] == None:
+        #             f.findNextHopToO(1)
 
     def disconnectO(self, vals):
         for (x, y) in vals:
             self.fields[x[0]-1][x[1]-1].disconnectO(
                 self.fields[x[0]-1 + y[0]][x[1]-1 + y[1]])
-        for (x, y) in vals:
-            for f in [self.fields[x[0] - 1][x[1] - 1], self.fields[x[0]-1 + y[0]][x[1]-1 + y[1]]]:
-                if f.nextHopToX[0][0] == None:
-                    f.findNextHopToX(0)
-                if f.nextHopToX[1][0] == None:
-                    f.findNextHopToX(1)
+        # for (x, y) in vals:
+        #     for f in [self.fields[x[0] - 1][x[1] - 1], self.fields[x[0]-1 + y[0]][x[1]-1 + y[1]]]:
+        #         if f.nextHopToX[0][0] == None:
+        #             f.findNextHopToX(0)
+        #         if f.nextHopToX[1][0] == None:
+        #             f.findNextHopToX(1)
 
     def areConnected(self, currentPos, followedPos, name="X"):
         if name == "X":
@@ -276,32 +276,32 @@ class Table:
             if wall[0] == "P":
                 self.setBlueWall((wall[1], wall[2]))
         self.setGamePiece(currentPos, nextPos, name)
-        if self.canPlayerXFinish():
-            xPos1 = self.X.firstGP.position
-            xPos2 = self.X.secondGP.position
-            print("Shortest path X1 to O1:",
-                  self.fields[xPos1[0]-1][xPos1[1]-1].getShortestPathToO(0))
-            print("Shortest path X1 to O2:",
-                  self.fields[xPos1[0]-1][xPos1[1]-1].getShortestPathToO(1))
-            print("Shortest path X2 to O1:",
-                  self.fields[xPos2[0]-1][xPos2[1]-1].getShortestPathToO(0))
-            print("Shortest path X2 to O2:",
-                  self.fields[xPos2[0]-1][xPos2[1]-1].getShortestPathToO(1))
-        else:
-            print("Player X can't finish!")
-        if self.canPlayerOFinish():
-            oPos1 = self.O.firstGP.position
-            oPos2 = self.O.secondGP.position
-            print("Shortest path O1 to X1:",
-                  self.fields[oPos1[0]-1][oPos1[1]-1].getShortestPathToX(0))
-            print("Shortest path O1 to X2:",
-                  self.fields[oPos1[0]-1][oPos1[1]-1].getShortestPathToX(1))
-            print("Shortest path O2 to X1:",
-                  self.fields[oPos2[0]-1][oPos2[1]-1].getShortestPathToX(0))
-            print("Shortest path O2 to X2:",
-                  self.fields[oPos2[0]-1][oPos2[1]-1].getShortestPathToX(1))
-        else:
-            print("Player O can't finish!")
+        # if self.canPlayerXFinish():
+        #     xPos1 = self.X.firstGP.position
+        #     xPos2 = self.X.secondGP.position
+        #     print("Shortest path X1 to O1:",
+        #           self.fields[xPos1[0]-1][xPos1[1]-1].getShortestPathToO(0))
+        #     print("Shortest path X1 to O2:",
+        #           self.fields[xPos1[0]-1][xPos1[1]-1].getShortestPathToO(1))
+        #     print("Shortest path X2 to O1:",
+        #           self.fields[xPos2[0]-1][xPos2[1]-1].getShortestPathToO(0))
+        #     print("Shortest path X2 to O2:",
+        #           self.fields[xPos2[0]-1][xPos2[1]-1].getShortestPathToO(1))
+        # else:
+        #     print("Player X can't finish!")
+        # if self.canPlayerOFinish():
+        #     oPos1 = self.O.firstGP.position
+        #     oPos2 = self.O.secondGP.position
+        #     print("Shortest path O1 to X1:",
+        #           self.fields[oPos1[0]-1][oPos1[1]-1].getShortestPathToX(0))
+        #     print("Shortest path O1 to X2:",
+        #           self.fields[oPos1[0]-1][oPos1[1]-1].getShortestPathToX(1))
+        #     print("Shortest path O2 to X1:",
+        #           self.fields[oPos2[0]-1][oPos2[1]-1].getShortestPathToX(0))
+        #     print("Shortest path O2 to X2:",
+        #           self.fields[oPos2[0]-1][oPos2[1]-1].getShortestPathToX(1))
+        # else:
+        #     print("Player O can't finish!")
 
     @staticmethod
     def createManhattan(currentPos, low, highN, highM, dStep):
@@ -318,22 +318,14 @@ class Table:
         return abs(currentPos[0] - followedPos[0]) + abs(currentPos[1] - followedPos[1]) == dStep
 
     def canBothPlayersFinish(self):
-        return self.canPlayerXFinish() and self.canPlayerOFinish()
+        return True  # self.canPlayerXFinish() and self.canPlayerOFinish()
 
     def canPlayerXFinish(self):
         xPos1 = self.X.firstGP.position
         xPos2 = self.X.secondGP.position
-        cond = self.fields[xPos1[0]-1][xPos1[1]-1].nextHopToO[0][0]
-        cond = cond and self.fields[xPos1[0]-1][xPos1[1]-1].nextHopToO[1][0]
-        cond = cond and self.fields[xPos2[0]-1][xPos2[1]-1].nextHopToO[0][0]
-        cond = cond and self.fields[xPos2[0]-1][xPos2[1]-1].nextHopToO[1][0]
-        return cond
+        return None not in [self.fields[xPos1[0]-1][xPos1[1]-1].nextHopToO[0][0], self.fields[xPos1[0]-1][xPos1[1]-1].nextHopToO[1][0], self.fields[xPos2[0]-1][xPos2[1]-1].nextHopToO[0][0], self.fields[xPos2[0]-1][xPos2[1]-1].nextHopToO[1][0]]
 
     def canPlayerOFinish(self):
         oPos1 = self.O.firstGP.position
         oPos2 = self.O.secondGP.position
-        cond = self.fields[oPos1[0]-1][oPos1[1]-1].nextHopToX[0][0]
-        cond = cond and self.fields[oPos1[0]-1][oPos1[1]-1].nextHopToX[1][0]
-        cond = cond and self.fields[oPos2[0]-1][oPos2[1]-1].nextHopToX[0][0]
-        cond = cond and self.fields[oPos2[0]-1][oPos2[1]-1].nextHopToX[1][0]
-        return cond
+        return None not in [self.fields[oPos1[0]-1][oPos1[1]-1].nextHopToX[0][0], self.fields[oPos1[0]-1][oPos1[1]-1].nextHopToX[1][0], self.fields[oPos2[0]-1][oPos2[1]-1].nextHopToX[0][0], self.fields[oPos2[0]-1][oPos2[1]-1].nextHopToX[1][0]]
