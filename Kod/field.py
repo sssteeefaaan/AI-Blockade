@@ -1,36 +1,38 @@
 class Field:
-    def __init__(self, table, position, connectedX, connectedO, initialFor=None):
+    def __init__(self, table, position, initialFor, connectedX=set(), connectedO=set(), oneWayConnectedX=set(), oneWayConnectedO=set(), discWalls=set(), nextHopToX=[(None, 99999), (None, 99999)], nextHopToO=[(None, 99999), (None, 99999)]):
         self.table = table
         self.position = position
         self.initialFor = initialFor[0] if initialFor else None
-        self.connectedX = set([x for x in connectedX])
-        self.connectedO = set([o for o in connectedO])
-        self.oneWayConnectedX = set()
-        self.oneWayConnectedO = set()
-        self.discWalls = set()
-        self.nextHopToX = [(None, 99999), (None, 99999)]
-        self.nextHopToO = [(None, 99999), (None, 99999)]
-
+        self.connectedX = connectedX
+        self.connectedO = connectedO
+        self.oneWayConnectedX = oneWayConnectedX
+        self.oneWayConnectedO = oneWayConnectedO
+        self.discWalls = discWalls
+        self.nextHopToX = nextHopToX
+        self.nextHopToO = nextHopToO
         match initialFor:
             case "X1":
-                self.nextHopToX[0] = (self, 0)
+                self.nextHopToX[0] = (self.position, 0)
             case "X2":
-                self.nextHopToX[1] = (self, 0)
+                self.nextHopToX[1] = (self.position, 0)
             case "O1":
-                self.nextHopToO[0] = (self, 0)
+                self.nextHopToO[0] = (self.position, 0)
             case "O2":
-                self.nextHopToO[1] = (self, 0)
+                self.nextHopToO[1] = (self.position, 0)
+
+    def getCopy(self, table):
+        return Field(table, self.position, self.initialFor, set(self.connectedX), set(self.connectedO), set(self.oneWayConnectedX), set(self.oneWayConnectedO), set(self.discWalls), list(self.nextHopToX), list(self.nextHopToO))
 
     def findNextHopToX(self, ind=0, f=None):
         change = False
-        if f and f == self.nextHopToX[ind][0]:
+        if f and f.position == self.nextHopToX[ind][0]:
             self.nextHopToX[ind] = (None, 99999)
             change = True
         for neighbour in self.connectedO:
             neighbourField = self.table.fields[neighbour[0]][neighbour[1]]
-            if neighbourField.nextHopToX[ind][0] not in [self, None] and neighbourField.nextHopToX[ind][1] < (self.nextHopToX[ind][1]-1):
+            if neighbourField.nextHopToX[ind][0] not in [self.position, None] and neighbourField.nextHopToX[ind][1] < (self.nextHopToX[ind][1]-1):
                 self.nextHopToX[ind] = (
-                    neighbourField, neighbourField.nextHopToX[ind][1] + 1)
+                    neighbourField.position, neighbourField.nextHopToX[ind][1] + 1)
                 change = True
         if change:
             for n in self.connectedO | self.oneWayConnectedO:
@@ -39,14 +41,14 @@ class Field:
 
     def findNextHopToO(self, ind=0, f=None):
         change = False
-        if f and f == self.nextHopToO[ind][0]:
+        if f and f.position == self.nextHopToO[ind][0]:
             self.nextHopToO[ind] = (None, 99999)
             change = True
         for neighbour in self.connectedX:
             neighbourField = self.table.fields[neighbour[0]][neighbour[1]]
-            if neighbourField.nextHopToO[ind][0] not in [self, None] and neighbourField.nextHopToO[ind][1] < (self.nextHopToO[ind][1]-1):
+            if neighbourField.nextHopToO[ind][0] not in [self.position, None] and neighbourField.nextHopToO[ind][1] < (self.nextHopToO[ind][1]-1):
                 self.nextHopToO[ind] = (
-                    neighbourField, neighbourField.nextHopToO[ind][1] + 1)
+                    neighbourField.position, neighbourField.nextHopToO[ind][1] + 1)
                 change = True
         if change:
             for n in self.connectedX | self.oneWayConnectedX:
@@ -57,10 +59,11 @@ class Field:
         path = []
         try:
             nextHop = self
-            while nextHop and nextHop.nextHopToX[ind][0] != nextHop:
+            while nextHop and nextHop.nextHopToX[ind][0] != nextHop.position:
                 print(nextHop.position, nextHop.connectedO)
                 path += [nextHop.position]
-                nextHop = nextHop.nextHopToX[ind][0]
+                nextHop = nextHop.table.fields[nextHop.nextHopToX[ind]
+                                               [0][0]][nextHop.nextHopToX[ind][0][1]]
             path += [nextHop.position]
         except Exception as e:
             print(e)
@@ -70,10 +73,11 @@ class Field:
         path = []
         try:
             nextHop = self
-            while nextHop and nextHop.nextHopToO[ind][0] != nextHop:
+            while nextHop and nextHop.nextHopToO[ind][0] != nextHop.position:
                 print(nextHop.position, nextHop.connectedX)
                 path += [nextHop.position]
-                nextHop = nextHop.nextHopToO[ind][0]
+                nextHop = nextHop.table.fields[nextHop.nextHopToO[ind]
+                                               [0][0]][nextHop.nextHopToO[ind][0][1]]
             path += [nextHop.position]
         except Exception as e:
             print(e)

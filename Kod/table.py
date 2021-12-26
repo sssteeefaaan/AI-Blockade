@@ -3,17 +3,37 @@ from field import Field
 
 
 class Table:
-    def __init__(self, n=11, m=14, initial={(4, 4): "X1", (8, 4): "X2", (4, 11): "O1", (8, 11): "O2"}):
+    def __init__(self, n=11, m=14, blueWalls=set(), greenWalls=set(), X=None, O=None, fields=list()):
         self.n = n
         self.m = m
-        self.blueWalls = set()
-        self.greenWalls = set()
-        self.fields = []
-        self.X = None
-        self.O = None
-        self.onInit(initial)
+        self.blueWalls = blueWalls
+        self.greenWalls = greenWalls
+        self.fields = fields
+        self.X = X
+        self.O = O
 
-    def onInit(self, initial):
+    def getCopy(self):
+        copy = Table(self.n, self.m, set(self.blueWalls), set(
+            self.greenWalls), self.X.getCopy(), self.O.getCopy(), list())
+        for row in self.fields:
+            copy.fields.append(list())
+            for f in row:
+                copy.fields[-1].append(f.getCopy(copy))
+        return copy
+
+    def onInit(self, initial, players):
+        self.setPlayers(players)
+        self.setFields(initial)
+        self.setNextHops(initial)
+
+    def setPlayers(self, players):
+        for player in players.keys():
+            if player == "X":
+                self.X = Player("X", *players[player])
+            elif player == "O":
+                self.O = Player("O", *players[player])
+
+    def setFields(self, initial):
         connectInitialX = []
         connectInitialO = []
         for i in range(0, self.n):
@@ -23,10 +43,8 @@ class Table:
                     (i, j), 0, self.n-1, self.m-1, 2))
                 connectedO = set(Table.createManhattan(
                     (i, j), 0, self.n-1, self.m-1, 2))
-
                 self.fields[i].append(
-                    Field(self, (i, j), connectedX, connectedO, initial.get((i+1, j+1), None)))
-
+                    Field(self, (i, j), initial.get((i+1, j+1), None), connectedX, connectedO))
                 match initial.get((i+1, j+1), None):
                     case "X1" | "X2":
                         position = (i+1, j+1)
@@ -40,26 +58,21 @@ class Table:
                                           Table.createManhattanGeneric(position, 1, self.n, self.m, 1)))
                         connectInitialX += list(filter(lambda x: 0 < x[0][0] + x[1][0] <=
                                                        self.n and 0 < x[0][1] + x[1][1] <= self.m, manGen))
-
         for k in initial.keys():
             self.setGamePiece(
                 (-100, -100), (k[0] + 1, k[1] + 1), initial.get(k)[0])
-
         self.connectO(connectInitialO, False)
         self.connectX(connectInitialX, False)
 
+    def setNextHops(self, initial):
         for row in self.fields:
             for f in row:
                 for i in range(2):
                     f.findNextHopToX(i)
                     f.findNextHopToO(i)
 
-    def setPlayers(self, players):
-        for player in players.keys():
-            if player == "X":
-                self.X = Player("X", *players[player])
-            elif player == "O":
-                self.O = Player("O", *players[player])
+    def getData(self):
+        return (self.greenWalls, self.blueWalls, {"X": self.X.getCurrectPositions(), "O": self.O.getCurrectPositions()}, self.X.getWallNumber(), self.O.getWallNumber())
 
     def checkState(self):
         if self.O.isWinner((self.X.firstGP.home, self.X.secondGP.home)):

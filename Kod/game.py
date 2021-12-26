@@ -4,30 +4,59 @@ from table import Table
 
 
 class Game:
-    def __init__(self, n=11, m=14, initial={(4, 4): "X1", (8, 4): "X2", (4, 11): "O1", (8, 11): "O2"}, wallNumb=9, greenWall="\u01c1", blueWall="\u2550", rowSep="\u23AF"):
-        self.table = Table(n, m, initial)
+    def __init__(self, n=11, m=14, greenWall="\u01c1", blueWall="\u2550", rowSep="\u23AF"):
+        self.table = Table(n, m)
         self.view = View(n, m, greenWall, blueWall, rowSep)
         self.next = None
         self.winner = None
 
-    def start(self, wallNumb, initial):
+    def start(self, initial):
         xPos = [x for x in initial.keys() if initial[x] in ["X1", "X2"]]
         oPos = [o for o in initial.keys() if initial[o] in ["O1", "O2"]]
+        wallNumber = (initial['wallNumber'], initial['wallNumber'])
+        initial.pop('wallNumber')
         self.view.showTable(self.table.greenWalls, self.table.blueWalls, {
-                            "X": xPos, "O": oPos}, (wallNumb, wallNumb), (wallNumb, wallNumb))
-        while self.next is None:
+                            "X": xPos, "O": oPos}, wallNumber, wallNumber)
+        while not self.next:
             match input("X/o?\n"):
                 case ("X" | "x"):
-                    self.table.setPlayers({"X": (False, wallNumb, xPos[0], xPos[1]), "O": (
-                        True, wallNumb, oPos[0], oPos[1])})
+                    playerInfo = {"X": (False, wallNumber, xPos, xPos), "O": (
+                        True, wallNumber, oPos, oPos)}
                 case ("O" | "o"):
-                    self.table.setPlayers({"X": (True, wallNumb, xPos[0], xPos[1]), "O": (
-                        False, wallNumb, oPos[0], oPos[1])})
+                    playerInfo = {"X": (True, wallNumber, oPos, oPos), "O": (
+                        False, wallNumber, oPos, oPos)}
                 case _:
                     print("Invalid player selection input!")
                     continue
+            self.table.onInit(initial, playerInfo)
             self.next = self.table.X
         self.play()
+
+    def play(self):
+        test = 5
+        while not self.winner:
+            parsedMove = Game.parseMove(input(
+                f"{self.next.name} is on the move!\n"))
+            if parsedMove[0]:
+                move = parsedMove[1]
+                validated = self.validation(move)
+                if validated[0]:
+                    test -= 1
+                    self.table.move(self.next.name, self.next.move(
+                        move[0][1], move[1], move[2]), move[1], move[2])
+                    self.view.showTable(*self.table.getData())
+                    self.next = self.table.X if self.next.name == self.table.O.name else self.table.O
+                    self.table.checkState()
+                    if not test:
+                        temp = self.table.getCopy()
+
+                    if test == -5:
+                        self.table = temp
+                else:
+                    print(validated[1])
+            else:
+                print(parsedMove[1])
+        print(f"{self.winner.name} won! Congrats!")
 
     def validation(self, move):
         if self.next.name != move[0][0]:
@@ -60,27 +89,6 @@ class Game:
         if not self.table.areConnected(self.next.firstGP.position if move[0][1] == 1 else self.next.secondGP.position, move[1], move[0][0]):
             return (False, "Invalid move!")
         return (True, "Valid move!")
-
-    def play(self):
-
-        while not self.winner:
-            parsedMove = Game.parseMove(input(
-                f"{self.next.name} is on the move!\n"))
-            if parsedMove[0]:
-                move = parsedMove[1]
-                validated = self.validation(move)
-                if validated[0]:
-                    self.table.move(self.next.name, self.next.move(
-                        move[0][1], move[1], move[2]), move[1], move[2])
-                    self.view.showTable(self.table.greenWalls, self.table.blueWalls, {"X": self.table.X.getPositions(
-                    ), "O": self.table.O.getPositions()}, self.table.X.getWallNumber(), self.table.O.getWallNumber())
-                    self.next = self.table.X if self.next.name == self.table.O.name else self.table.O
-                    self.table.checkState()
-                else:
-                    print(validated[1])
-            else:
-                print(parsedMove[1])
-        print(f"{self.winner.name} won! Congrats!")
 
     @staticmethod
     def parseMove(stream):
@@ -139,8 +147,8 @@ def main():
             "Input the number of blue/green walls each player has (Empty for the default minimum value of 9, the max is 18): ")
         wallNumb = wallNumb if wallNumb else "9"
 
-    g = Game(int(n), int(m), initial, int(wallNumb))
-    g.start(int(wallNumb), initial)
+    g = Game(int(n), int(m))
+    g.start(initial | {'wallNumber': int(wallNumb)})
 
 
 if __name__ == "__main__":
