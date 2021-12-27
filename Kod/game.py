@@ -34,7 +34,7 @@ class Game:
             self.next = self.table.X
             newStates = self.genNewStates()
             ind = 1
-            print('Done :)')
+            print('Done')
             for ns in newStates:
                 print(ind, ns)
                 ind += 1
@@ -42,8 +42,8 @@ class Game:
 
     def play(self):
         while not self.winner:
-            parsedMove = Game.parseMove(input(
-                f"{self.next.name} is on the move!\n"))
+            parsedMove = Game.parseMove(
+                input(f"{self.next.name} is on the move!\n"))
             if parsedMove[0]:
                 move = parsedMove[1]
                 validated = self.validation(move)
@@ -60,47 +60,38 @@ class Game:
         print(f"{self.winner.name} won! Congrats!")
 
     def genNewStates(self):
-        blueWallStates = list()
-        if self.next.noBlueWalls > 0:
-            for i in range(1, self.table.n):
-                for j in range(1, self.table.m):
-                    if self.table.isCorrectBlueWall((i, j)):
-                        blueWallStates.append(self.table.getCopy())
-                        blueWallStates[-1].setBlueWall((i, j))
-        greenWallStates = list()
-        if self.next.noGreenWalls > 0:
-            for i in range(1, self.table.n):
-                for j in range(1, self.table.m):
-                    if self.table.isCorrectGreenWall((i, j)):
-                        greenWallStates.append(self.table.getCopy())
-                        greenWallStates[-1].setGreenWall((i, j))
-        newStates = list()
+        playerStates = list()
         if self.next.name == "X":
             for pos in self.next.getCurrectPositions():
                 for n in self.table.fields[pos].connectedX:
-                    for bws in blueWallStates:
-                        temp = bws.getCopy()
-                        temp.setGamePiece(pos, (n[0], n[1]), self.next.name)
-                        if temp.canBothPlayersFinish():
-                            newStates.append(temp)
-                    for gws in greenWallStates:
-                        temp = gws.getCopy()
-                        temp.setGamePiece(pos, (n[0], n[1]), self.next.name)
-                        if temp.canBothPlayersFinish():
-                            newStates.append(temp)
+                    playerStates.append(self.table.getCopy())
+                    playerStates[-1].setGamePiece(pos, n, self.next.name)
         elif self.next.name == "O":
             for pos in self.next.getCurrectPositions():
                 for n in self.table.fields[pos].connectedO:
-                    for bws in blueWallStates:
-                        temp = bws.getCopy()
-                        temp.setGamePiece(pos, (n[0], n[1]), self.next.name)
-                        if temp.canBothPlayersFinish():
-                            newStates.append(temp)
-                    for gws in greenWallStates:
-                        temp = gws.getCopy()
-                        temp.setGamePiece(pos, (n[0], n[1]), self.next.name)
-                        if temp.canBothPlayersFinish():
-                            newStates.append(temp)
+                    playerStates.append(self.table.getCopy())
+                    playerStates[-1].setGamePiece(pos, n, self.next.name)
+        if self.next.noBlueWalls == self.next.noGreenWalls == 0:
+            return playerStates
+        newStates = list()
+        if self.next.noBlueWalls > 0:
+            for i in range(1, self.table.n):
+                for j in range(1, self.table.m):
+                    for ps in playerStates:
+                        if ps.isCorrectBlueWall((i, j)):
+                            temp = ps.getCopy()
+                            temp.setBlueWall((i, j))
+                            if temp.canBothPlayersFinish():
+                                newStates.append(temp)
+        if self.next.noGreenWalls > 0:
+            for i in range(1, self.table.n):
+                for j in range(1, self.table.m):
+                    for ps in playerStates:
+                        if ps.isCorrectGreenWall((i, j)):
+                            temp = ps.getCopy()
+                            temp.setGreenWall((i, j))
+                            if temp.canBothPlayersFinish():
+                                newStates.append(temp)
         return newStates
 
     def validation(self, move):
@@ -172,14 +163,14 @@ def main():
         temp = input(
             f"Input {len(initial)+1}. initial position for X (Empty for the default value of ({4 if len(initial) == 0 else 8}, 4)): ")
         temp = temp if temp else f"({4 if len(initial) == 0 else 8}, 4)"
-        initial[tuple(map(lambda x: int(x), temp.replace(
-            "(", "").replace(")", "").replace(",", "").split(" ")))] = f"X{len(initial)+1}"
+        initial[tuple(map(lambda x: int(x), temp.replace("(", "").replace(
+            ")", "").replace(",", "").split(" ")))] = f"X{len(initial)+1}"
     while len(initial.keys()) < 4:
         temp = input(
             f"Input {len(initial)-1}. initial position for O (Empty for the default value of ({4 if len(initial)-1 == 1 else 8}, 11)): ")
         temp = temp if temp else f"({4 if len(initial)-1 == 1 else 8}, 11)"
-        initial[tuple(map(lambda x: int(x), temp.replace(
-            "(", "").replace(")", "").replace(",", "").split(" ")))] = f"O{len(initial)-1}"
+        initial[tuple(map(lambda x: int(x), temp.replace("(", "").replace(
+            ")", "").replace(",", "").split(" ")))] = f"O{len(initial)-1}"
     wallNumb = ""
     while not str.isdigit(wallNumb) or int(wallNumb) < 9 or int(wallNumb) > 18:
         wallNumb = input(

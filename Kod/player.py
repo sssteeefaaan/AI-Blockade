@@ -26,13 +26,12 @@ class Player:
         return self.firstGP.position in positions or self.secondGP.position in positions
 
     def move(self, pieceNum, positon, wall=None):
-        if pieceNum == 1:
-            prevPos = self.firstGP.move(positon)
-        else:
-            prevPos = self.secondGP.move(positon)
         if wall != None:
             if wall[0].upper() == "Z":
                 self.noGreenWalls -= 1
             elif wall[0].upper() == "P":
                 self.noBlueWalls -= 1
-        return prevPos
+        if pieceNum == 1:
+            return self.firstGP.move(positon)
+        else:
+            return self.secondGP.move(positon)

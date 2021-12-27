@@ -19,6 +19,9 @@ class Table:
             copy.fields[key] = self.fields[key].getCopy(copy)
         return copy
 
+    def getData(self):
+        return (self.greenWalls, self.blueWalls, {"X": self.X.getCurrectPositions(), "O": self.O.getCurrectPositions()}, self.X.getWallNumber(), self.O.getWallNumber())
+
     def onInit(self, initial, players):
         self.setPlayers(players)
         self.setFields(initial)
@@ -43,18 +46,17 @@ class Table:
                     pos, None), connected, connected)
                 match initial.get(pos, None):
                     case "X1" | "X2":
-                        manGen = list(map(lambda x: ((pos[0] - x[0], pos[1] - x[1]), x),
-                                          Table.createManhattanGeneric(pos, 1, self.n, self.m, 1)))
-                        connectInitialO += list(filter(lambda x: 0 < x[0][0] <= self.n and 0 < x[0][0] + x[1][0] <=
-                                                       self.n and 0 < x[0][1] <= self.m and 0 < x[0][1] + x[1][1] <= self.m, manGen))
+                        manGen = list(map(lambda x: (
+                            (pos[0] - x[0], pos[1] - x[1]), x), Table.createManhattanGeneric(pos, 1, self.n, self.m, 1)))
+                        connectInitialO += list(filter(lambda x: 0 < x[0][0] <= self.n and 0 < x[0][0] + x[1]
+                                                [0] <= self.n and 0 < x[0][1] <= self.m and 0 < x[0][1] + x[1][1] <= self.m, manGen))
                     case "O1" | "O2":
-                        manGen = list(map(lambda x: ((pos[0] - x[0], pos[1] - x[1]), x),
-                                          Table.createManhattanGeneric(pos, 1, self.n, self.m, 1)))
-                        connectInitialX += list(filter(lambda x: 0 < x[0][0] <= self.n and 0 < x[0][0] + x[1][0] <=
-                                                       self.n and 0 < x[0][1] <= self.m and 0 < x[0][1] + x[1][1] <= self.m, manGen))
+                        manGen = list(map(lambda x: (
+                            (pos[0] - x[0], pos[1] - x[1]), x), Table.createManhattanGeneric(pos, 1, self.n, self.m, 1)))
+                        connectInitialX += list(filter(lambda x: 0 < x[0][0] <= self.n and 0 < x[0][0] + x[1]
+                                                [0] <= self.n and 0 < x[0][1] <= self.m and 0 < x[0][1] + x[1][1] <= self.m, manGen))
         for k in initial.keys():
-            self.setGamePiece(
-                (-100, -100), (k[0], k[1]), initial.get(k)[0])
+            self.setGamePiece((-100, -100), (k[0], k[1]), initial.get(k)[0])
         self.connectO(connectInitialO, False)
         self.connectX(connectInitialX, False)
 
@@ -77,9 +79,6 @@ class Table:
                     self.fields[pos].nextHopToO[1] = (pos, 0)
                     self.fields[pos].notifyNextHopToO(
                         self.fields[pos], 1, True)
-
-    def getData(self):
-        return (self.greenWalls, self.blueWalls, {"X": self.X.getCurrectPositions(), "O": self.O.getCurrectPositions()}, self.X.getWallNumber(), self.O.getWallNumber())
 
     def checkState(self):
         if self.O.isWinner((self.X.firstGP.home, self.X.secondGP.home)):
@@ -153,14 +152,14 @@ class Table:
         self.disconnect(forDisconnect, "Z")
 
     def setGamePiece(self, prevPos, position, name="X"):
-        forConnect = list(map(lambda x: ((position[0] - x[0] * 2, position[1] - x[1] * 2), x),
-                              Table.createManhattanGeneric(position, 1, self.n, self.m, 1)))
+        forConnect = list(map(lambda x: (
+            (position[0] - x[0] * 2, position[1] - x[1] * 2), x), Table.createManhattanGeneric(position, 1, self.n, self.m, 1)))
         forConnect = list(filter(lambda x: 0 < x[0][0] <= self.n and 0 < x[0][0] + x[1][0] <=
-                                 self.n and 0 < x[0][1] <= self.m and 0 < x[0][1] + x[1][1] <= self.m, forConnect))
-        forPrevConnect = list(map(lambda x: ((prevPos[0] - x[0] * 2, prevPos[1] - x[1] * 2), x),
-                                  Table.createManhattanGeneric(prevPos, 1, self.n, self.m, 1)))
+                          self.n and 0 < x[0][1] <= self.m and 0 < x[0][1] + x[1][1] <= self.m, forConnect))
+        forPrevConnect = list(map(lambda x: (
+            (prevPos[0] - x[0] * 2, prevPos[1] - x[1] * 2), x), Table.createManhattanGeneric(prevPos, 1, self.n, self.m, 1)))
         forPrevConnect = list(filter(lambda x: 0 < x[0][0] <= self.n and 0 < x[0][0] + x[1][0] <=
-                                     self.n and 0 < x[0][1] <= self.m and 0 < x[0][1] + x[1][1] <= self.m, forPrevConnect))
+                              self.n and 0 < x[0][1] <= self.m and 0 < x[0][1] + x[1][1] <= self.m, forPrevConnect))
         forDisconnect = Table.createManhattanGeneric(
             position, 1, self.n, self.m, 2)
         forDisconnect = list(zip([position]*len(forDisconnect), forDisconnect))
@@ -260,17 +259,13 @@ class Table:
             return followedPos in self.fields[currentPos].connectedO
 
     def isCorrectBlueWall(self, pos):
-        return not (pos in self.greenWalls or
-                    [x for x in [(pos[0], pos[1] - 1), pos, (pos[0], pos[1] + 1)]
-                     if x in self.blueWalls])
+        return not (pos in self.greenWalls or [x for x in [(pos[0], pos[1] - 1), pos, (pos[0], pos[1] + 1)] if x in self.blueWalls])
 
     def isCorrectGreenWall(self, pos):
-        return not (pos in self.blueWalls
-                    or [x for x in [(pos[0] - 1, pos[1]), pos, (pos[0] + 1, pos[1])]
-                        if x in self.greenWalls])
+        return not (pos in self.blueWalls or [x for x in [(pos[0] - 1, pos[1]), pos, (pos[0] + 1, pos[1])] if x in self.greenWalls])
 
     def canBothPlayersFinish(self):
-        return self.canPlayerXFinish() and self.canPlayerOFinish()
+        return True  # self.canPlayerXFinish() and self.canPlayerOFinish()
 
     def canPlayerXFinish(self):
         xPos1 = self.X.firstGP.position

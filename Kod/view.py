@@ -30,14 +30,13 @@ class View:
                 self.greenWall] + table[gw[0] + 2][(gw[1] + 1) << 1:]
 
         for bw in blueWalls:
-            table[bw[0] + 1] = table[bw[0] + 1][:(self.m + 2 + bw[1]) << 1] + [
-                self.blueWall] + [" "] + [self.blueWall] + table[bw[0] + 1][((self.m + 2 + bw[1]) << 1) + 3:]
+            table[bw[0] + 1] = table[bw[0] + 1][:(self.m + 2 + bw[1]) << 1] + [self.blueWall] + [
+                " "] + [self.blueWall] + table[bw[0] + 1][((self.m + 2 + bw[1]) << 1) + 3:]
 
         for player in players.keys():
             for i in range(2):
-                table[players[player][i][0] + 1] = table[players[player][i][0] + 1][:players[player][i][1] << 1] + \
-                    [player] + table[players[player][i][0] +
-                                     1][(players[player][i][1] << 1) + 1:]
+                table[players[player][i][0] + 1] = table[players[player][i][0] + 1][:players[player][i][1]
+                                                                                    << 1] + [player] + table[players[player][i][0] + 1][(players[player][i][1] << 1) + 1:]
 
         for r in table:
             for v in r:

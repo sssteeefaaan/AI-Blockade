@@ -1,5 +1,7 @@
 class Field:
-    def __init__(self, table, position, initialFor, connectedX=set(), connectedO=set(), oneWayConnectedX=set(), oneWayConnectedO=set(), discWalls=set(), nextHopToX=[(None, 99999), (None, 99999)], nextHopToO=[(None, 99999), (None, 99999)]):
+    def __init__(self, table, position, initialFor, connectedX=set(), connectedO=set(),
+                 oneWayConnectedX=set(), oneWayConnectedO=set(), discWalls=set(),
+                 nextHopToX=[(None, 99999), (None, 99999)], nextHopToO=[(None, 99999), (None, 99999)]):
         self.table = table
         self.position = position
         self.initialFor = initialFor[0] if initialFor else None
@@ -21,7 +23,9 @@ class Field:
                 self.nextHopToO[1] = (position, 0)
 
     def getCopy(self, table):
-        return Field(table, self.position, self.initialFor, self.connectedX, self.connectedO, self.oneWayConnectedX, self.oneWayConnectedO, self.discWalls, self.nextHopToX, self.nextHopToO)
+        return Field(table, self.position, self.initialFor, self.connectedX, self.connectedO,
+                     self.oneWayConnectedX, self.oneWayConnectedO, self.discWalls,
+                     self.nextHopToX, self.nextHopToO)
 
     def connect(self, f):
         self.connectX(f)
