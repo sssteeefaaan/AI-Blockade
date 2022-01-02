@@ -32,12 +32,12 @@ class Game:
                     continue
             self.table.onInit(initial, playerInfo)
             self.next = self.table.X
-            newStates = self.genNewStates()
-            ind = 1
-            print('Done')
-            for ns in newStates:
-                print(ind, ns)
-                ind += 1
+            # newStates = self.genNewStates()
+            # ind = 1
+            # print('Done')
+            # for ns in newStates:
+            #     print(ind, ns)
+            #     ind += 1
         self.play()
 
     def play(self):
@@ -60,38 +60,41 @@ class Game:
         print(f"{self.winner.name} won! Congrats!")
 
     def genNewStates(self):
-        playerStates = list()
-        if self.next.name == "X":
-            for pos in self.next.getCurrectPositions():
-                for n in self.table.fields[pos].connectedX:
-                    playerStates.append(self.table.getCopy())
-                    playerStates[-1].setGamePiece(pos, n, self.next.name)
-        elif self.next.name == "O":
-            for pos in self.next.getCurrectPositions():
-                for n in self.table.fields[pos].connectedO:
-                    playerStates.append(self.table.getCopy())
-                    playerStates[-1].setGamePiece(pos, n, self.next.name)
-        if self.next.noBlueWalls == self.next.noGreenWalls == 0:
-            return playerStates
-        newStates = list()
+        blueWallStates = list()
         if self.next.noBlueWalls > 0:
             for i in range(1, self.table.n):
                 for j in range(1, self.table.m):
-                    for ps in playerStates:
-                        if ps.isCorrectBlueWall((i, j)):
-                            temp = ps.getCopy()
-                            temp.setBlueWall((i, j))
-                            if temp.canBothPlayersFinish():
-                                newStates.append(temp)
+                    if self.table.isCorrectBlueWall((i, j)):
+                        if not self.table.isConnectedBlueWall((i, j)) or self.table.findNewPaths() == 4:
+                            blueWallStates.append(self.table.getCopy())
+                            blueWallStates[-1].setBlueWall((i, j))
+        greenWallStates = list()
         if self.next.noGreenWalls > 0:
             for i in range(1, self.table.n):
                 for j in range(1, self.table.m):
-                    for ps in playerStates:
-                        if ps.isCorrectGreenWall((i, j)):
-                            temp = ps.getCopy()
-                            temp.setGreenWall((i, j))
-                            if temp.canBothPlayersFinish():
-                                newStates.append(temp)
+                    if self.table.isCorrectGreenWall((i, j)):
+                        if not self.table.isConnectedGreenWall((i, j)) or self.table.findNewPaths() == 4:
+                            greenWallStates.append(self.table.getCopy())
+                            greenWallStates[-1].setGreenWall((i, j))
+        newStates = list()
+        if self.next.name == "X":
+            for pos in self.next.getCurrectPositions():
+                for newPos in self.table.fields[pos].connectedX:
+                    for bws in blueWallStates:
+                        newStates.append(bws.getCopy())
+                        newStates[-1].setGamePiece(pos, newPos, self.next.name)
+                    for gws in greenWallStates:
+                        newStates.append(gws.getCopy())
+                        newStates[-1].setGamePiece(pos, newPos, self.next.name)
+        elif self.next.name == "O":
+            for pos in self.next.getCurrectPositions():
+                for newPos in self.table.fields[pos].connectedO:
+                    for bws in blueWallStates:
+                        newStates.append(bws.getCopy())
+                        newStates[-1].setGamePiece(pos, newPos, self.next.name)
+                    for gws in greenWallStates:
+                        newStates.append(gws.getCopy())
+                        newStates[-1].setGamePiece(pos, newPos, self.next.name)
         return newStates
 
     def validation(self, move):
@@ -122,7 +125,9 @@ class Game:
                     return (False, "You don't have any blue walls left to place...")
                 if not self.table.isCorrectBlueWall((move[2][1], move[2][2])):
                     return (False, "Blue wall cannot be set on the given position!")
-        if not self.table.areConnected(self.next.firstGP.position if move[0][1] == 1 else self.next.secondGP.position, move[1], move[0][0]):
+        if not self.table.areConnected(
+                self.next.firstGP.position if move[0][1] == 1 else self.next.secondGP.position, move[1],
+                move[0][0]):
             return (False, "Invalid move!")
         return (True, "Valid move!")
 
