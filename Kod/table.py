@@ -76,10 +76,10 @@ class Table:
         self.setPathsO()
 
     def setPathsX(self):
-        self.xPaths = self.findPathsX(self.X.getCurrectPositions(), self.O.getInitialPositions())
+        self.xPaths = self.findShortestPathsX(self.X.getCurrectPositions(), self.O.getInitialPositions())
 
     def setPathsO(self):
-        self.oPaths = self.findPathsO(self.O.getCurrectPositions(), self.X.getInitialPositions())
+        self.oPaths = self.findShortestPathsO(self.O.getCurrectPositions(), self.X.getInitialPositions())
 
     def checkState(self):
         if self.O.isWinner(self.X.getInitialPositions()):
@@ -298,58 +298,49 @@ class Table:
             self.setPathsO()
         return None not in self.oPaths
 
-    def findPathsX(self, xPos, endPos):
+    def findShortestPathsX(self, xPos, endPos):
         paths = [False] * 4
         queue = {
             'first game piece': {
                 'heads': {
-                    xPos[0]: 0
+                    xPos[0]: [xPos[0]]
                 },
-                'processing': [[xPos[0]]],
-                'partial paths': [[xPos[0]]]
+                'processing': [[xPos[0]]]
             },
             'second game piece': {
                 'heads': {
-                    xPos[1]: 0
+                    xPos[1]: [xPos[1]]
                 },
-                'processing': [[xPos[1]]],
-                'partial paths': [[xPos[1]]]
+                'processing': [[xPos[1]]]
             },
             'first initial': {
                 'tails': {
-                    endPos[0]: 0
+                    endPos[0]: [endPos[0]]
                 },
-                'processing': [[endPos[0]]],
-                'partial paths': [[endPos[0]]]
+                'processing': [[endPos[0]]]
             },
             'second initial': {
                 'tails': {
-                    endPos[1]: 0
+                    endPos[1]: [endPos[1]]
                 },
-                'processing': [[endPos[1]]],
-                'partial paths': [[endPos[1]]]
+                'processing': [[endPos[1]]]
             }
         }
         while None not in paths and False in paths:
             if queue['first game piece']['processing']:
                 current, *queue['first game piece']['processing'] = queue['first game piece']['processing']
                 for n in self.fields[current[-1]].connectedX:
-                    if not paths[0]:
-                        ind = queue['first initial']['tails'].get(n, None)
-                        if ind != None:
-                            paths[0] = current + queue['first initial']['partial paths'][ind]
-                            if paths[1]:
-                                queue['first game piece']['processing'].clear()
-                    if not paths[1]:
-                        ind = queue['second initial']['tails'].get(n, None)
-                        if ind != None:
-                            paths[1] = current + queue['second initial']['partial paths'][ind]
-                            if paths[0]:
-                                queue['first game piece']['processing'].clear()
+                    el = queue['first initial']['tails'].get(n, None)
+                    if el != None and (not paths[0] or len(paths[0]) > len(current) + len(el)):
+                        paths[0] = current + el
+                    el = queue['second initial']['tails'].get(n, None)
+                    if el != None and (not paths[1] or len(paths[1]) > len(current) + len(el)):
+                        paths[1] = current + el
                     if not queue['first game piece']['heads'].get(n, None):
-                        queue['first game piece']['heads'][n] = len(queue['first game piece']['partial paths'])
-                        queue['first game piece']['partial paths'] += [current + [n]]
+                        queue['first game piece']['heads'][n] = current + [n]
                         queue['first game piece']['processing'] += [current + [n]]
+                if paths[0] and paths[1]:
+                    queue['first game piece']['processing'].clear()
             else:
                 if not paths[0]:
                     paths[0] = None
@@ -358,22 +349,17 @@ class Table:
             if queue['second game piece']['processing']:
                 current, *queue['second game piece']['processing'] = queue['second game piece']['processing']
                 for n in self.fields[current[-1]].connectedX:
-                    if not paths[2]:
-                        ind = queue['first initial']['tails'].get(n, None)
-                        if ind != None:
-                            paths[2] = current + queue['first initial']['partial paths'][ind]
-                            if paths[3]:
-                                queue['second game piece']['processing'].clear()
-                    if not paths[3]:
-                        ind = queue['second initial']['tails'].get(n, None)
-                        if ind != None:
-                            paths[3] = current + queue['second initial']['partial paths'][ind]
-                            if paths[2]:
-                                queue['second game piece']['processing'].clear()
+                    el = queue['first initial']['tails'].get(n, None)
+                    if el != None and (not paths[2] or len(paths[2]) > len(current) + len(el)):
+                        paths[2] = current + el
+                    el = queue['second initial']['tails'].get(n, None)
+                    if el != None and (not paths[3] or len(paths[3]) > len(current) + len(el)):
+                        paths[3] = current + el
                     if not queue['second game piece']['heads'].get(n, None):
-                        queue['second game piece']['heads'][n] = len(queue['second game piece']['partial paths'])
-                        queue['second game piece']['partial paths'] += [current + [n]]
+                        queue['second game piece']['heads'][n] = current + [n]
                         queue['second game piece']['processing'] += [current + [n]]
+                if paths[2] and paths[3]:
+                    queue['second game piece']['processing'].clear()
             else:
                 if not paths[2]:
                     paths[2] = None
@@ -383,22 +369,17 @@ class Table:
                 current, *queue['first initial']['processing'] = queue['first initial']['processing']
                 for n in self.fields[current[0]].connectedX | self.fields[current[0]].oneWayConnectedX:
                     if current[0] in self.fields[n].connectedX:
-                        if not paths[0]:
-                            ind = queue['first game piece']['heads'].get(n, None)
-                            if ind != None:
-                                paths[0] = queue['first game piece']['partial paths'][ind] + current
-                                if paths[2]:
-                                    queue['first initial']['processing'].clear()
-                        if not paths[2]:
-                            ind = queue['second game piece']['heads'].get(n, None)
-                            if ind != None:
-                                paths[2] = queue['second game piece']['partial paths'][ind] + current
-                                if paths[0]:
-                                    queue['first initial']['processing'].clear()
+                        el = queue['first game piece']['heads'].get(n, None)
+                        if el != None and (not paths[0] or len(paths[0]) > len(current) + len(el)):
+                            paths[0] = el + current
+                        el = queue['second game piece']['heads'].get(n, None)
+                        if el != None and (not paths[2] or len(paths[2]) > len(current) + len(el)):
+                            paths[2] = el + current
                         if not queue['first initial']['tails'].get(n, None):
-                            queue['first initial']['tails'][n] = len(queue['first initial']['partial paths'])
-                            queue['first initial']['partial paths'] += [[n] + current]
+                            queue['first initial']['tails'][n] = [n] + current
                             queue['first initial']['processing'] += [[n] + current]
+                if paths[0] and paths[2]:
+                    queue['first initial']['processing'].clear()
             else:
                 if not paths[0]:
                     paths[0] = None
@@ -408,22 +389,17 @@ class Table:
                 current, *queue['second initial']['processing'] = queue['second initial']['processing']
                 for n in self.fields[current[0]].connectedX | self.fields[current[0]].oneWayConnectedX:
                     if current[0] in self.fields[n].connectedX:
-                        if not paths[1]:
-                            ind = queue['first game piece']['heads'].get(n, None)
-                            if ind != None:
-                                paths[1] = queue['first game piece']['partial paths'][ind] + current
-                                if paths[3]:
-                                    queue['second initial']['processing'].clear()
-                        if not paths[3]:
-                            ind = queue['second game piece']['heads'].get(n, None)
-                            if ind != None:
-                                paths[3] = queue['second game piece']['partial paths'][ind] + current
-                                if paths[1]:
-                                    queue['second initial']['processing'].clear()
+                        el = queue['first game piece']['heads'].get(n, None)
+                        if el != None and (not paths[1] or len(paths[1]) > len(current) + len(el)):
+                            paths[1] = el + current
+                        el = queue['second game piece']['heads'].get(n, None)
+                        if el != None and (not paths[3] or len(paths[3]) > len(current) + len(el)):
+                            paths[3] = el + current
                         if not queue['second initial']['tails'].get(n, None):
-                            queue['second initial']['tails'][n] = len(queue['second initial']['partial paths'])
-                            queue['second initial']['partial paths'] += [[n] + current]
+                            queue['second initial']['tails'][n] = [n] + current
                             queue['second initial']['processing'] += [[n] + current]
+                if paths[1] and paths[3]:
+                    queue['second initial']['processing'].clear()
             else:
                 if not paths[1]:
                     paths[1] = None
@@ -431,58 +407,49 @@ class Table:
                     paths[3] = None
         return paths
 
-    def findPathsO(self, oPos, endPos):
+    def findShortestPathsO(self, oPos, endPos):
         paths = [False] * 4
         queue = {
             'first game piece': {
                 'heads': {
-                    oPos[0]: 0
+                    oPos[0]: [oPos[0]]
                 },
-                'processing': [[oPos[0]]],
-                'partial paths': [[oPos[0]]]
+                'processing': [[oPos[0]]]
             },
             'second game piece': {
                 'heads': {
-                    oPos[1]: 0
+                    oPos[1]: [oPos[1]]
                 },
-                'processing': [[oPos[1]]],
-                'partial paths': [[oPos[1]]]
+                'processing': [[oPos[1]]]
             },
             'first initial': {
                 'tails': {
-                    endPos[0]: 0
+                    endPos[0]: [endPos[0]]
                 },
-                'processing': [[endPos[0]]],
-                'partial paths': [[endPos[0]]]
+                'processing': [[endPos[0]]]
             },
             'second initial': {
                 'tails': {
-                    endPos[1]: 0
+                    endPos[1]: [endPos[1]]
                 },
-                'processing': [[endPos[1]]],
-                'partial paths': [[endPos[1]]]
+                'processing': [[endPos[1]]]
             }
         }
         while None not in paths and False in paths:
             if queue['first game piece']['processing']:
                 current, *queue['first game piece']['processing'] = queue['first game piece']['processing']
                 for n in self.fields[current[-1]].connectedO:
-                    if not paths[0]:
-                        ind = queue['first initial']['tails'].get(n, None)
-                        if ind != None:
-                            paths[0] = current + queue['first initial']['partial paths'][ind]
-                            if paths[1]:
-                                queue['first game piece']['processing'].clear()
-                    if not paths[1]:
-                        ind = queue['second initial']['tails'].get(n, None)
-                        if ind != None:
-                            paths[1] = current + queue['second initial']['partial paths'][ind]
-                            if paths[0]:
-                                queue['first game piece']['processing'].clear()
+                    el = queue['first initial']['tails'].get(n, None)
+                    if el != None and (not paths[0] or len(paths[0]) > len(current) + len(el)):
+                        paths[0] = current + el
+                    el = queue['second initial']['tails'].get(n, None)
+                    if el != None and (not paths[1] or len(paths[1]) > len(current) + len(el)):
+                        paths[1] = current + el
                     if not queue['first game piece']['heads'].get(n, None):
-                        queue['first game piece']['heads'][n] = len(queue['first game piece']['partial paths'])
-                        queue['first game piece']['partial paths'] += [current + [n]]
+                        queue['first game piece']['heads'][n] = current + [n]
                         queue['first game piece']['processing'] += [current + [n]]
+                if paths[0] and paths[1]:
+                    queue['first game piece']['processing'].clear()
             else:
                 if not paths[0]:
                     paths[0] = None
@@ -491,22 +458,17 @@ class Table:
             if queue['second game piece']['processing']:
                 current, *queue['second game piece']['processing'] = queue['second game piece']['processing']
                 for n in self.fields[current[-1]].connectedO:
-                    if not paths[2]:
-                        ind = queue['first initial']['tails'].get(n, None)
-                        if ind != None:
-                            paths[2] = current + queue['first initial']['partial paths'][ind]
-                            if paths[3]:
-                                queue['second game piece']['processing'].clear()
-                    if not paths[3]:
-                        ind = queue['second initial']['tails'].get(n, None)
-                        if ind != None:
-                            paths[3] = current + queue['second initial']['partial paths'][ind]
-                            if paths[2]:
-                                queue['second game piece']['processing'].clear()
+                    el = queue['first initial']['tails'].get(n, None)
+                    if el != None and (not paths[2] or len(paths[2]) > len(current) + len(el)):
+                        paths[2] = current + el
+                    el = queue['second initial']['tails'].get(n, None)
+                    if el != None and (not paths[3] or len(paths[3]) > len(current) + len(el)):
+                        paths[3] = current + el
                     if not queue['second game piece']['heads'].get(n, None):
-                        queue['second game piece']['heads'][n] = len(queue['second game piece']['partial paths'])
-                        queue['second game piece']['partial paths'] += [current + [n]]
+                        queue['second game piece']['heads'][n] = current + [n]
                         queue['second game piece']['processing'] += [current + [n]]
+                if paths[2] and paths[3]:
+                    queue['second game piece']['processing'].clear()
             else:
                 if not paths[2]:
                     paths[2] = None
@@ -516,22 +478,17 @@ class Table:
                 current, *queue['first initial']['processing'] = queue['first initial']['processing']
                 for n in self.fields[current[0]].connectedO | self.fields[current[0]].oneWayConnectedO:
                     if current[0] in self.fields[n].connectedO:
-                        if not paths[0]:
-                            ind = queue['first game piece']['heads'].get(n, None)
-                            if ind != None:
-                                paths[0] = queue['first game piece']['partial paths'][ind] + current
-                                if paths[2]:
-                                    queue['first initial']['processing'].clear()
-                        if not paths[2]:
-                            ind = queue['second game piece']['heads'].get(n, None)
-                            if ind != None:
-                                paths[2] = queue['second game piece']['partial paths'][ind] + current
-                                if paths[0]:
-                                    queue['first initial']['processing'].clear()
+                        el = queue['first game piece']['heads'].get(n, None)
+                        if el != None and (not paths[0] or len(paths[0]) > len(current) + len(el)):
+                            paths[0] = el + current
+                        el = queue['second game piece']['heads'].get(n, None)
+                        if el != None and (not paths[2] or len(paths[2]) > len(current) + len(el)):
+                            paths[2] = el + current
                         if not queue['first initial']['tails'].get(n, None):
-                            queue['first initial']['tails'][n] = len(queue['first initial']['partial paths'])
-                            queue['first initial']['partial paths'] += [[n] + current]
+                            queue['first initial']['tails'][n] = [n] + current
                             queue['first initial']['processing'] += [[n] + current]
+                if paths[0] and paths[2]:
+                    queue['first initial']['processing'].clear()
             else:
                 if not paths[0]:
                     paths[0] = None
@@ -541,22 +498,17 @@ class Table:
                 current, *queue['second initial']['processing'] = queue['second initial']['processing']
                 for n in self.fields[current[0]].connectedO | self.fields[current[0]].oneWayConnectedO:
                     if current[0] in self.fields[n].connectedO:
-                        if not paths[1]:
-                            ind = queue['first game piece']['heads'].get(n, None)
-                            if ind != None:
-                                paths[1] = queue['first game piece']['partial paths'][ind] + current
-                                if paths[3]:
-                                    queue['second initial']['processing'].clear()
-                        if not paths[3]:
-                            ind = queue['second game piece']['heads'].get(n, None)
-                            if ind != None:
-                                paths[3] = queue['second game piece']['partial paths'][ind] + current
-                                if paths[1]:
-                                    queue['second initial']['processing'].clear()
+                        el = queue['first game piece']['heads'].get(n, None)
+                        if el != None and (not paths[1] or len(paths[1]) > len(current) + len(el)):
+                            paths[1] = el + current
+                        el = queue['second game piece']['heads'].get(n, None)
+                        if el != None and (not paths[3] or len(paths[3]) > len(current) + len(el)):
+                            paths[3] = el + current
                         if not queue['second initial']['tails'].get(n, None):
-                            queue['second initial']['tails'][n] = len(queue['second initial']['partial paths'])
-                            queue['second initial']['partial paths'] += [[n] + current]
+                            queue['second initial']['tails'][n] = [n] + current
                             queue['second initial']['processing'] += [[n] + current]
+                if paths[1] and paths[3]:
+                    queue['second initial']['processing'].clear()
             else:
                 if not paths[1]:
                     paths[1] = None
