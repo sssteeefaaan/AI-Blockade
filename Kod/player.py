@@ -2,7 +2,10 @@ from gamePiece import GamePiece
 
 
 class Player:
-    def __init__(self, name, isComputer=False, wallNumb=(9, 9), initialPositions=(None, None), currentPositions=(None, None)):
+    def __init__(
+            self, name, isComputer=False, wallNumb=(9, 9),
+            initialPositions=(None, None),
+            currentPositions=(None, None)):
         self.name = name
         self.firstGP = GamePiece(initialPositions[0], currentPositions[0])
         self.secondGP = GamePiece(initialPositions[1], currentPositions[1])
@@ -11,7 +14,10 @@ class Player:
         self.isComputer = isComputer
 
     def getCopy(self):
-        return Player(self.name, self.isComputer, self.getWallNumber(), self.getInitialPositions(), self.getCurrectPositions())
+        return Player(
+            self.name, self.isComputer, self.getWallNumber(),
+            self.getInitialPositions(),
+            self.getCurrectPositions())
 
     def getInitialPositions(self):
         return (self.firstGP.home, self.secondGP.home)
@@ -25,13 +31,7 @@ class Player:
     def isWinner(self, positions):
         return self.firstGP.position in positions or self.secondGP.position in positions
 
-    def move(self, pieceNum, positon, wall=None):
-        if wall != None:
-            if wall[0].upper() == "Z":
-                self.noGreenWalls -= 1
-            elif wall[0].upper() == "P":
-                self.noBlueWalls -= 1
-        if pieceNum == 1:
-            return self.firstGP.move(positon)
-        else:
-            return self.secondGP.move(positon)
+    def movePiece(self, gamePiece):
+        if gamePiece['choice'] == 1:
+            return self.firstGP.move(gamePiece['position'])
+        return self.secondGP.move(gamePiece['position'])

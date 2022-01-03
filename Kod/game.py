@@ -17,8 +17,7 @@ class Game:
         oPos = [o for o in initial.keys() if initial[o] in ["O1", "O2"]]
         wallNumber = (initial['wallNumber'], initial['wallNumber'])
         initial.pop('wallNumber')
-        self.view.showTable(self.table.greenWalls, self.table.blueWalls, {
-                            "X": xPos, "O": oPos}, wallNumber, wallNumber)
+        self.view.showTable(self.table.greenWalls, self.table.blueWalls, {"X": xPos, "O": oPos}, wallNumber, wallNumber)
         while not self.next:
             match input("X/o?\n"):
                 case ("X" | "x"):
@@ -32,125 +31,198 @@ class Game:
                     continue
             self.table.onInit(initial, playerInfo)
             self.next = self.table.X
-            # newStates = self.genNewStates()
-            # ind = 1
-            # print('Done')
-            # for ns in newStates:
-            #     print(ind, ns)
-            #     ind += 1
         self.play()
 
     def play(self):
         while not self.winner:
-            parsedMove = Game.parseMove(
-                input(f"{self.next.name} is on the move!\n"))
-            if parsedMove[0]:
-                move = parsedMove[1]
-                validated = self.validation(move)
-                if validated[0]:
-                    self.table.move(self.next.name, self.next.move(
-                        move[0][1], move[1], move[2]), move[1], move[2])
+            parsedMove = Game.parseMove(input(f"{self.next.name} is on the move!\n"))
+            if parsedMove['correct']:
+                if parsedMove['game piece']:
+                    move = self.validateGamePieceMove(parsedMove['game piece'])
+                    if move['valid']:
+                        self.table.setGamePiece(move['game piece'])
+                elif parsedMove['blue wall']:
+                    move = self.validateBlueWall(parsedMove['blue wall'] | {'next': self.next.name})
+                    if move['valid']:
+                        if move.get('virtual', None):
+                            self.table = move['virtual']
+                        else:
+                            self.table.setBlueWall(move['blue wall'])
+                else:
+                    move = self.validateGreenWall(parsedMove['green wall'] | {'next': self.next.name})
+                    if move['valid']:
+                        if move.get('virtual', None):
+                            self.table = move['virtual']
+                        else:
+                            self.table.setGreenWall(move['green wall'])
+                if move['valid']:
+                    self.table.showPaths(True)
                     self.view.showTable(*self.table.getData())
                     self.next = self.table.X if self.next.name == self.table.O.name else self.table.O
                     self.table.checkState()
                 else:
-                    print(validated[1])
+                    print(move['message'])
             else:
-                print(parsedMove[1])
+                print(parsedMove['message'])
         print(f"{self.winner.name} won! Congrats!")
 
     def genNewStates(self):
-        blueWallStates = list()
+        states = {
+            'blue wall': list(),
+            'green wall': list(),
+            'game piece': list()
+        }
         if self.next.noBlueWalls > 0:
             for i in range(1, self.table.n):
                 for j in range(1, self.table.m):
                     if self.table.isCorrectBlueWall((i, j)):
-                        if not self.table.isConnectedBlueWall((i, j)) or self.table.findNewPaths() == 4:
-                            blueWallStates.append(self.table.getCopy())
-                            blueWallStates[-1].setBlueWall((i, j))
-        greenWallStates = list()
+                        temp = self.table.getCopy()
+                        temp.setBlueWall({
+                            'position': (i, j),
+                            'next': self.next.name
+                        })
+                        if not self.table.isConnectedBlueWall((i, j)) or temp.canBothPlayersFinish(True, True):
+                            states['blue wall'].append(temp)
         if self.next.noGreenWalls > 0:
             for i in range(1, self.table.n):
                 for j in range(1, self.table.m):
                     if self.table.isCorrectGreenWall((i, j)):
-                        if not self.table.isConnectedGreenWall((i, j)) or self.table.findNewPaths() == 4:
-                            greenWallStates.append(self.table.getCopy())
-                            greenWallStates[-1].setGreenWall((i, j))
-        newStates = list()
+                        temp = self.table.getCopy()
+                        temp.setGreenWall({
+                            'position': (i, j),
+                            'next': self.next.name
+                        })
+                        if not self.table.isConnectedGreenWall((i, j)) or temp.canBothPlayersFinish(True, True):
+                            states['green wall'].append(temp)
         if self.next.name == "X":
-            for pos in self.next.getCurrectPositions():
-                for newPos in self.table.fields[pos].connectedX:
-                    for bws in blueWallStates:
-                        newStates.append(bws.getCopy())
-                        newStates[-1].setGamePiece(pos, newPos, self.next.name)
-                    for gws in greenWallStates:
-                        newStates.append(gws.getCopy())
-                        newStates[-1].setGamePiece(pos, newPos, self.next.name)
+            positions = self.next.getCurrectPositions()
+            for choice in range(1, 3):
+                for newPos in self.table.fields[positions[choice - 1]].connectedX:
+                    states['game piece'].append(self.table.getCopy())
+                    states['game piece'][-1].setGamePiece({
+                        'previous position': positions[choice - 1],
+                        'position': newPos,
+                        'name': "X",
+                        'choice': choice
+                    })
         elif self.next.name == "O":
-            for pos in self.next.getCurrectPositions():
-                for newPos in self.table.fields[pos].connectedO:
-                    for bws in blueWallStates:
-                        newStates.append(bws.getCopy())
-                        newStates[-1].setGamePiece(pos, newPos, self.next.name)
-                    for gws in greenWallStates:
-                        newStates.append(gws.getCopy())
-                        newStates[-1].setGamePiece(pos, newPos, self.next.name)
-        return newStates
+            positions = self.next.getCurrectPositions()
+            for choice in range(1, 3):
+                for newPos in self.table.fields[positions[choice - 1]].connectedO:
+                    states['game piece'].append(self.table.getCopy())
+                    states['game piece'][-1].setGamePiece({
+                        'previous position': positions[choice - 1],
+                        'position': newPos,
+                        'name': "O",
+                        'choice': choice
+                    })
+        return states
 
-    def validation(self, move):
-        if self.next.name != move[0][0]:
-            return (False, "Not your turn!")
-        if self.table.n < move[1][0] or move[1][0] < 1:
-            return (False, "Row index out of bounds!")
-        if self.table.m < move[1][1] or move[1][1] < 1:
-            return (False, "Column index out of bounds!")
-        if move[1] == (self.next.firstGP.position if move[0][1] == 1 else self.next.secondGP.position):
-            return (False, "You're already on that position!")
-        if move[1] == (self.next.firstGP.position if move[0][1] == 2 else self.next.secondGP.position):
-            return (False, "Can't step on your pieces!")
-        if not move[2] and self.next.noBlueWalls + self.next.noGreenWalls > 0:
-            return (False, "You didn't put up a wall!")
-        if move[2]:
-            if move[2][1] > self.table.n-1 or move[2][1] < 1:
-                return (False, "Wall row index out of bounds!")
-            if move[2][2] > self.table.m-1 or move[2][2] < 1:
-                return (False, "Wall column index out of bounds!")
-            if move[2][0] == "Z":
-                if self.next.noGreenWalls < 1:
-                    return (False, "You don't have any green walls left to place...")
-                if not self.table.isCorrectGreenWall((move[2][1], move[2][2])):
-                    return (False, "Green wall cannot be set on the given position!")
-            elif move[2][0] == "P":
-                if self.next.noBlueWalls < 1:
-                    return (False, "You don't have any blue walls left to place...")
-                if not self.table.isCorrectBlueWall((move[2][1], move[2][2])):
-                    return (False, "Blue wall cannot be set on the given position!")
-        if not self.table.areConnected(
-                self.next.firstGP.position if move[0][1] == 1 else self.next.secondGP.position, move[1],
-                move[0][0]):
-            return (False, "Invalid move!")
-        return (True, "Valid move!")
+    def validateGamePieceMove(self, move):
+        ret = {'valid': False}
+        if self.next.name != move['name']:
+            ret['message'] = "Not your turn!"
+        elif 1 > move['position'][0] > self.table.n:
+            ret['message'] = "Row index out of bounds!"
+        elif 1 > move['position'][1] > self.table.m:
+            ret['message'] = "Column index out of bounds!"
+        elif move['position'] in self.next.getCurrectPositions():
+            ret['message'] = "You're already on that position!"
+        elif not self.table.areConnected(self.next.getCurrectPositions()[move['choice'] - 1], move['position'], move['name']):
+            ret['message'] = "Can't move there!"
+        else:
+            ret['valid'] = True
+            ret['game piece'] = move
+        return ret
+
+    def validateBlueWall(self, wall):
+        ret = {'valid': False, 'message': ""}
+        if self.next.getWallNumber()[0] < 1:
+            ret['message'] = "No blue walls left!"
+        elif 1 > wall['position'][0] > self.table.n - 1:
+            ret['message'] = "Row index out of bounds!"
+        elif 1 > wall['position'][1] > self.table.m - 1:
+            ret['message'] = "Column index out of bounds!"
+        elif not self.table.isCorrectBlueWall(wall['position']):
+            ret['message'] = "Can't put a blue wall on the given position!"
+        elif not self.table.isConnectedBlueWall(wall['position']):
+            ret['valid'] = True
+            ret['blue wall'] = wall
+        else:
+            temp = self.table.getCopy()
+            temp.setBlueWall(wall)
+            if not temp.canPlayerXFinish(True):
+                ret['message'] += "Player X can't finish!"
+            if not temp.canPlayerOFinish(True):
+                ret['message'] += "Player O can't finish!"
+            if temp.canBothPlayersFinish():
+                ret['valid'] = True
+                ret['virtual'] = temp
+        return ret
+
+    def validateGreenWall(self, wall):
+        ret = {'valid': False, 'message': ""}
+        if self.next.getWallNumber()[1] < 1:
+            ret['message'] = "No green walls left!"
+        elif 1 > wall['position'][0] > self.table.n - 1:
+            ret['message'] = "Row index out of bounds!"
+        elif 1 > wall['position'][1] > self.table.m - 1:
+            ret['message'] = "Column index out of bounds!"
+        elif not self.table.isCorrectGreenWall(wall['position']):
+            ret['message'] = "Can't put a green wall on the given position!"
+        elif not self.table.isConnectedGreenWall(wall['position']):
+            ret['valid'] = True
+            ret['green wall'] = wall
+        else:
+            temp = self.table.getCopy()
+            temp.setGreenWall(wall)
+            if not temp.canPlayerXFinish(True):
+                ret['message'] += "Player X can't finish!"
+            if not temp.canPlayerOFinish(True):
+                ret['message'] += "Player O can't finish!"
+            if temp.canBothPlayersFinish():
+                ret['valid'] = True
+                ret['virtual'] = temp
+        return ret
 
     @staticmethod
     def parseMove(stream):
-        ret = []
+        ret = {
+            'correct': False,
+            'message': None,
+            'green wall': None,
+            'blue wall': None,
+            'game piece': None
+        }
         m = stream.replace('[', '').replace(']', '').upper().split(' ')
-        if m[0] not in ["X", "O"]:
-            return (False, "Invalid player ID!")
-        if m[1] not in ['1', '2']:
-            return (False, "Invalid piece ID!")
-        ret += [[m[0], int(m[1])]]
-        if len(m) < 4:
-            return (False, "Missing positional coordinates!")
-        ret += [tuple([ord(x)-55 if x >= 'A' else ord(x)-48 for x in m[2:4]])]
-        if len(m) > 4:
-            if m[4] not in ["Z", "P"]:
-                return (False, "Invalid wall ID!")
-            ret += [[m[4], *
-                     [ord(x)-55 if x >= 'A' else ord(x)-48 for x in m[5:7]]]]
+        if m[0] in ['X', 'O']:
+            if m[1] not in ['1', '2']:
+                ret['message'] = "Invalid piece ID!"
+            else:
+                try:
+                    ret['game piece'] = {
+                        'name': m[0],
+                        'choice': int(m[1]),
+                        'position': tuple([ord(x)-55 if x >= 'A' else ord(x)-48 for x in m[2:4]])
+                    }
+                    ret['correct'] = True
+                except Exception as e:
+                    ret['message'] = "Incorrect possitional coordinates!"
+        elif m[0] == 'B':
+            try:
+                ret['blue wall'] = {'position': tuple([ord(x)-55 if x >= 'A' else ord(x)-48 for x in m[1:3]])}
+                ret['correct'] = True
+            except Exception as e:
+                ret['message'] = "Incorrect possitional coordinates!"
+        elif m[0] == 'G':
+            try:
+                ret['green wall'] = {'position': tuple([ord(x)-55 if x >= 'A' else ord(x)-48 for x in m[1:3]])}
+                ret['correct'] = True
+            except Exception as e:
+                ret['message'] = "Incorrect possitional coordinates!"
         else:
-            ret += [None]
-        return (True, ret)
+            ret['message'] = "Invalid move choice!"
+        return ret
 
 
 def main():

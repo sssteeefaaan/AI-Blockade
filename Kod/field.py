@@ -41,7 +41,7 @@ class Field:
     def disconnect(self, f, w=None):
         if w:
             self.discWalls.add(f.position)
-            if w == "Z":
+            if w == "G":
                 self.discWalls.add((f.position[0]+1, f.position[1]))
             else:
                 self.discWalls.add((f.position[0], f.position[1]+1))
