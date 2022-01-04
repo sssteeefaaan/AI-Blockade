@@ -32,13 +32,12 @@ class Game:
                     continue
             self.table.onInit(initial, playerInfo)
             self.next = self.table.X
-            #Game.genNewStates(self.table, self.next.name)
         self.play()
 
     def play(self):
         while not self.winner:
             if self.next.isComputer:
-                self.table = Game.minimax(self.table, 3, self.next, (self.table, -50), (self.table, 50))[0]
+                self.table = Game.minimax(self.table, 1, self.next, ([self.table], -50), ([self.table], 50))
                 self.next = self.table.X if self.next.name == self.table.O.name else self.table.O
                 self.winner = self.table.findWinner()
                 self.table.showPaths(True)
@@ -63,7 +62,7 @@ class Game:
 
     @staticmethod
     def genNewStates(currentState, player):
-        print(f"Generating new states... for player {player}")
+        print(f"Generating new states for player {player}... please be patient...")
         currTime = monotonic_ns()
         playerReff = currentState.X if player == "X" else currentState.O
         states = {
@@ -101,20 +100,23 @@ class Game:
                 if not states['blue wall'] and not states['green wall']:
                     for newPos in currentState.fields[positions[choice - 1]].connectedX:
                         gp['position'] = newPos
-                        states['new'].append(currentState.getCopy())
-                        states['new'][-1].setGamePiece(dict(gp))
-                        states['new'][-1].canBothPlayersFinish(True, True)
+                        temp = currentState.getCopy()
+                        temp.setGamePiece(dict(gp))
+                        if temp.canBothPlayersFinish(True, True):
+                            states['new'].append(temp)
                 else:
                     for newPos in currentState.fields[positions[choice - 1]].connectedX:
                         gp['position'] = newPos
                         for bws in states['blue wall']:
-                            states['new'].append(bws.getCopy())
-                            states['new'][-1].setGamePiece(dict(gp))
-                            states['new'][-1].canBothPlayersFinish(True, True)
+                            temp = bws.getCopy()
+                            temp.setGamePiece(dict(gp))
+                            # if temp.canBothPlayersFinish(True, True):
+                            states['new'].append(temp)
                         for gws in states['green wall']:
-                            states['new'].append(gws.getCopy())
-                            states['new'][-1].setGamePiece(dict(gp))
-                            states['new'][-1].canBothPlayersFinish(True, True)
+                            temp = gws.getCopy()
+                            temp.setGamePiece(dict(gp))
+                            # if temp.canBothPlayersFinish(True, True):
+                            states['new'].append(temp)
         elif gp['name'] == "O":
             positions = playerReff.getCurrectPositions()
             for choice in range(1, 3):
@@ -122,42 +124,45 @@ class Game:
                 if not states['blue wall'] and not states['green wall']:
                     for newPos in currentState.fields[positions[choice - 1]].connectedO:
                         gp['position'] = newPos
-                        states['new'].append(currentState.getCopy())
-                        states['new'][-1].setGamePiece(dict(gp))
-                        states['new'][-1].canBothPlayersFinish(True, True)
+                        temp = currentState.getCopy()
+                        temp.setGamePiece(dict(gp))
+                        # if temp.canBothPlayersFinish(True, True):
+                        states['new'].append(temp)
                 else:
                     for newPos in currentState.fields[positions[choice - 1]].connectedO:
                         gp['position'] = newPos
                         for bws in states['blue wall']:
-                            states['new'].append(bws.getCopy())
-                            states['new'][-1].setGamePiece(dict(gp))
-                            states['new'][-1].canBothPlayersFinish(True, True)
+                            temp = bws.getCopy()
+                            temp.setGamePiece(dict(gp))
+                            # if temp.canBothPlayersFinish(True, True):
+                            states['new'].append(temp)
                         for gws in states['green wall']:
-                            states['new'].append(gws.getCopy())
-                            states['new'][-1].setGamePiece(dict(gp))
-                            states['new'][-1].canBothPlayersFinish(True, True)
+                            temp = gws.getCopy()
+                            temp.setGamePiece(dict(gp))
+                            # if temp.canBothPlayersFinish(True, True):
+                            states['new'].append(temp)
         print(f"Generated {len(states['new'])} for {monotonic_ns() - currTime}ns!")
         return states['new']
 
     @staticmethod
-    def maxValue(state, depth, player, alpha, beta):
+    def maxValue(states, depth, player, alpha, beta):
         if depth == 0:
-            return (state, Game.evaluateState(state, player))
+            return (states, Game.evaluateState(states[-1], player))
         else:
-            for branchState in Game.genNewStates(state, player):
-                alpha = max(alpha, Game.minValue(branchState, depth - 1, "X" if player ==
+            for branchState in Game.genNewStates(states[-1], player):
+                alpha = max(alpha, Game.minValue(states + [branchState], depth - 1, "X" if player ==
                             "O" else "O", alpha, beta), key=lambda x: x[1])
                 if alpha[1] >= beta[1]:
                     return beta
         return alpha
 
     @staticmethod
-    def minValue(state, depth, player, alpha, beta):
+    def minValue(states, depth, player, alpha, beta):
         if depth == 0:
-            return (state, Game.evaluateState(state, player))
+            return (states, Game.evaluateState(states[-1], player))
         else:
-            for branchState in Game.genNewStates(state, player):
-                beta = min(beta, Game.maxValue(branchState, depth - 1, "X" if player ==
+            for branchState in Game.genNewStates(states[-1], player):
+                beta = min(beta, Game.maxValue(states + [branchState], depth - 1, "X" if player ==
                            "O" else "O", alpha, beta), key=lambda x: x[1])
                 if beta[1] <= alpha[1]:
                     return alpha
@@ -165,30 +170,29 @@ class Game:
 
     @staticmethod
     def minimax(state, depth, player, alpha, beta):
-        for branchState in Game.genNewStates(state, player):
-            alpha = (branchState, max(alpha, Game.minValue(branchState, depth - 1, "X" if player ==
-                                                           "O" else "O", alpha, beta), key=lambda x: x[1])[1])
-            if alpha[1] >= beta[1]:
-                return (branchState, beta[1])
-        return alpha
+        return Game.maxValue([state], depth, player.name, alpha, beta)[0][1]
 
     @staticmethod
     def evaluateState(state, player):
         winner = state.findWinner()
         if winner:
-            print(winner.name, player)
             if winner.name == player:
-                return -50
+                return -49
+                # Vraca [beginingState] ukoliko je manje ili jednako alpha (-50)
             else:
-                return 50
+                return 49
+                # Vraca [beginingState] ukoliko je vece ili jednako beta (50)
         else:
-            state.setPaths()
-            xMin = min(map(lambda x: len(x), state.xPaths))
-            oMin = min(map(lambda x: len(x), state.oPaths))
-            if player == "X":
-                return xMin - oMin
+            if state.canBothPlayersFinish(True, True):
+                xMin = min(map(lambda x: len(x), state.xPaths))
+                oMin = min(map(lambda x: len(x), state.oPaths))
+                if player == "X":
+                    return xMin - oMin
+                else:
+                    return oMin - xMin
             else:
-                return oMin - xMin
+                # Invalid state!!!! Should never be played/generated
+                return -49
 
     def validateMove(self, move):
         validGamePiece = self.validateGamePieceMove(move['game piece'])
@@ -342,10 +346,10 @@ def main():
         initial[tuple(map(lambda x: int(x), temp.replace("(", "").replace(
             ")", "").replace(",", "").split(" ")))] = f"O{len(initial)-1}"
     wallNumb = ""
-    while not str.isdigit(wallNumb) or int(wallNumb) < 0 or int(wallNumb) > 18:
+    while not str.isdigit(wallNumb) or int(wallNumb) < 9 or int(wallNumb) > 18:
         wallNumb = input(
             "Input the number of blue/green walls each player has (Empty for the default minimum value of 9, the max is 18): ")
-        wallNumb = wallNumb if wallNumb else "0"
+        wallNumb = wallNumb if wallNumb else "9"
 
     g = Game(int(n), int(m))
     g.start(initial | {'wallNumber': int(wallNumb)})
