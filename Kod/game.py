@@ -1,6 +1,7 @@
 from view import View
 from table import Table
 from sys import setrecursionlimit
+from time import monotonic_ns
 
 setrecursionlimit(128000)
 
@@ -31,85 +32,163 @@ class Game:
                     continue
             self.table.onInit(initial, playerInfo)
             self.next = self.table.X
-            self.genNewStates()
+            #Game.genNewStates(self.table, self.next.name)
         self.play()
 
     def play(self):
         while not self.winner:
-            parsedMove = Game.parseMove(input(f"{self.next.name} is on the move!\n"))
-            if not parsedMove['errors']:
-                move = self.validateMove(parsedMove)
-                if not move['errors']:
-                    if move.get('virtual', None):
-                        self.table = move['virtual']
-                    self.table.playMove(move)
-                    self.next = self.table.X if self.next.name == self.table.O.name else self.table.O
-                    self.table.checkState()
-                    self.genNewStates()
-                    self.table.showPaths(True)
-                    self.view.showTable(*self.table.getData())
-                else:
-                    print(move['errors'])
+            if self.next.isComputer:
+                self.table = Game.minimax(self.table, 3, self.next, (self.table, -50), (self.table, 50))[0]
+                self.next = self.table.X if self.next.name == self.table.O.name else self.table.O
+                self.winner = self.table.findWinner()
+                self.table.showPaths(True)
+                self.view.showTable(*self.table.getData())
             else:
-                print(parsedMove['errors'])
+                parsedMove = Game.parseMove(input(f"{self.next.name} is on the move!\n"))
+                if not parsedMove['errors']:
+                    move = self.validateMove(parsedMove)
+                    if not move['errors']:
+                        if move.get('virtual', None):
+                            self.table = move['virtual']
+                        self.table.playMove(move)
+                        self.next = self.table.X if self.next.name == self.table.O.name else self.table.O
+                        self.winner = self.table.findWinner()
+                        self.table.showPaths(True)
+                        self.view.showTable(*self.table.getData())
+                    else:
+                        print(move['errors'])
+                else:
+                    print(parsedMove['errors'])
         print(f"{self.winner.name} won! Congrats!")
 
-    def genNewStates(self):
-        print('Generating new states...')
+    @staticmethod
+    def genNewStates(currentState, player):
+        print(f"Generating new states... for player {player}")
+        currTime = monotonic_ns()
+        playerReff = currentState.X if player == "X" else currentState.O
         states = {
             'blue wall': list(),
             'green wall': list(),
             'new': list()
         }
-        if self.next.noBlueWalls > 0:
-            for i in range(1, self.table.n):
-                for j in range(1, self.table.m):
-                    if self.table.isCorrectBlueWall((i, j)):
-                        temp = self.table.getCopy()
+        if playerReff.noBlueWalls > 0:
+            for i in range(1, currentState.n):
+                for j in range(1, currentState.m):
+                    if currentState.isCorrectBlueWall((i, j)):
+                        temp = currentState.getCopy()
                         temp.setBlueWall({
                             'position': (i, j),
-                            'next': self.next.name
+                            'next': playerReff.name
                         })
-                        if not self.table.isConnectedBlueWall((i, j)) or temp.canBothPlayersFinish(True, True):
+                        if not currentState.isConnectedBlueWall((i, j)) or temp.canBothPlayersFinish(True, True):
                             states['blue wall'].append(temp)
-        if self.next.noGreenWalls > 0:
-            for i in range(1, self.table.n):
-                for j in range(1, self.table.m):
-                    if self.table.isCorrectGreenWall((i, j)):
-                        temp = self.table.getCopy()
+        if playerReff.noGreenWalls > 0:
+            for i in range(1, currentState.n):
+                for j in range(1, currentState.m):
+                    if currentState.isCorrectGreenWall((i, j)):
+                        temp = currentState.getCopy()
                         temp.setGreenWall({
                             'position': (i, j),
-                            'next': self.next.name
+                            'next': playerReff.name
                         })
-                        if not self.table.isConnectedGreenWall((i, j)) or temp.canBothPlayersFinish(True, True):
+                        if not currentState.isConnectedGreenWall((i, j)) or temp.canBothPlayersFinish(True, True):
                             states['green wall'].append(temp)
-        gp = {'name': self.next.name}
-        if self.next.name == "X":
-            positions = self.next.getCurrectPositions()
+        gp = {'name': playerReff.name}
+        if gp['name'] == "X":
+            positions = playerReff.getCurrectPositions()
             for choice in range(1, 3):
                 gp['choice'] = choice
-                for newPos in self.table.fields[positions[choice - 1]].connectedX:
-                    gp['position'] = newPos
-                    for bws in states['blue wall']:
-                        states['new'].append(bws.getCopy())
+                if not states['blue wall'] and not states['green wall']:
+                    for newPos in currentState.fields[positions[choice - 1]].connectedX:
+                        gp['position'] = newPos
+                        states['new'].append(currentState.getCopy())
                         states['new'][-1].setGamePiece(dict(gp))
-                    for gws in states['green wall']:
-                        states['new'].append(gws.getCopy())
-                        states['new'][-1].setGamePiece(dict(gp))
-        elif self.next.name == "O":
-            positions = self.next.getCurrectPositions()
+                        states['new'][-1].canBothPlayersFinish(True, True)
+                else:
+                    for newPos in currentState.fields[positions[choice - 1]].connectedX:
+                        gp['position'] = newPos
+                        for bws in states['blue wall']:
+                            states['new'].append(bws.getCopy())
+                            states['new'][-1].setGamePiece(dict(gp))
+                            states['new'][-1].canBothPlayersFinish(True, True)
+                        for gws in states['green wall']:
+                            states['new'].append(gws.getCopy())
+                            states['new'][-1].setGamePiece(dict(gp))
+                            states['new'][-1].canBothPlayersFinish(True, True)
+        elif gp['name'] == "O":
+            positions = playerReff.getCurrectPositions()
             for choice in range(1, 3):
                 gp['choice'] = choice
-                for newPos in self.table.fields[positions[choice - 1]].connectedO:
-                    gp['position'] = newPos
-                    for bws in states['blue wall']:
-                        states['new'].append(bws.getCopy())
+                if not states['blue wall'] and not states['green wall']:
+                    for newPos in currentState.fields[positions[choice - 1]].connectedO:
+                        gp['position'] = newPos
+                        states['new'].append(currentState.getCopy())
                         states['new'][-1].setGamePiece(dict(gp))
-                    for gws in states['green wall']:
-                        states['new'].append(gws.getCopy())
-                        states['new'][-1].setGamePiece(dict(gp))
-        print('Done', len(states['new']))
+                        states['new'][-1].canBothPlayersFinish(True, True)
+                else:
+                    for newPos in currentState.fields[positions[choice - 1]].connectedO:
+                        gp['position'] = newPos
+                        for bws in states['blue wall']:
+                            states['new'].append(bws.getCopy())
+                            states['new'][-1].setGamePiece(dict(gp))
+                            states['new'][-1].canBothPlayersFinish(True, True)
+                        for gws in states['green wall']:
+                            states['new'].append(gws.getCopy())
+                            states['new'][-1].setGamePiece(dict(gp))
+                            states['new'][-1].canBothPlayersFinish(True, True)
+        print(f"Generated {len(states['new'])} for {monotonic_ns() - currTime}ns!")
         return states['new']
+
+    @staticmethod
+    def maxValue(state, depth, player, alpha, beta):
+        if depth == 0:
+            return (state, Game.evaluateState(state, player))
+        else:
+            for branchState in Game.genNewStates(state, player):
+                alpha = max(alpha, Game.minValue(branchState, depth - 1, "X" if player ==
+                            "O" else "O", alpha, beta), key=lambda x: x[1])
+                if alpha[1] >= beta[1]:
+                    return beta
+        return alpha
+
+    @staticmethod
+    def minValue(state, depth, player, alpha, beta):
+        if depth == 0:
+            return (state, Game.evaluateState(state, player))
+        else:
+            for branchState in Game.genNewStates(state, player):
+                beta = min(beta, Game.maxValue(branchState, depth - 1, "X" if player ==
+                           "O" else "O", alpha, beta), key=lambda x: x[1])
+                if beta[1] <= alpha[1]:
+                    return alpha
+        return beta
+
+    @staticmethod
+    def minimax(state, depth, player, alpha, beta):
+        for branchState in Game.genNewStates(state, player):
+            alpha = (branchState, max(alpha, Game.minValue(branchState, depth - 1, "X" if player ==
+                                                           "O" else "O", alpha, beta), key=lambda x: x[1])[1])
+            if alpha[1] >= beta[1]:
+                return (branchState, beta[1])
+        return alpha
+
+    @staticmethod
+    def evaluateState(state, player):
+        winner = state.findWinner()
+        if winner:
+            print(winner.name, player)
+            if winner.name == player:
+                return -50
+            else:
+                return 50
+        else:
+            state.setPaths()
+            xMin = min(map(lambda x: len(x), state.xPaths))
+            oMin = min(map(lambda x: len(x), state.oPaths))
+            if player == "X":
+                return xMin - oMin
+            else:
+                return oMin - xMin
 
     def validateMove(self, move):
         validGamePiece = self.validateGamePieceMove(move['game piece'])
@@ -136,14 +215,15 @@ class Game:
         return ret
 
     def validateWall(self, wall):
-        ret = {}
-        if not wall and sum(self.next.getWallNumber()) > 0:
-            ret['errors'] = "You must put up a wall!\n"
+        ret = {'errors': ""}
+        if not wall:
+            if sum(self.next.getWallNumber()) > 0:
+                ret['errors'] = "You must put up a wall!\n"
         else:
             wall |= {'next': self.next.name}
             if wall['type'] == 'B':
                 ret |= self.validateBlueWall(wall)
-            else:
+            elif wall['type'] == 'G':
                 ret |= self.validateGreenWall(wall)
         return ret
 
@@ -262,10 +342,10 @@ def main():
         initial[tuple(map(lambda x: int(x), temp.replace("(", "").replace(
             ")", "").replace(",", "").split(" ")))] = f"O{len(initial)-1}"
     wallNumb = ""
-    while not str.isdigit(wallNumb) or int(wallNumb) < 9 or int(wallNumb) > 18:
+    while not str.isdigit(wallNumb) or int(wallNumb) < 0 or int(wallNumb) > 18:
         wallNumb = input(
             "Input the number of blue/green walls each player has (Empty for the default minimum value of 9, the max is 18): ")
-        wallNumb = wallNumb if wallNumb else "9"
+        wallNumb = wallNumb if wallNumb else "0"
 
     g = Game(int(n), int(m))
     g.start(initial | {'wallNumber': int(wallNumb)})
