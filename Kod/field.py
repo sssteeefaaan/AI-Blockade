@@ -1,18 +1,18 @@
 class Field:
     def __init__(
-            self, table, position, initialFor, connectedX=set(),
-            connectedO=set(),
-            oneWayConnectedX=set(),
-            oneWayConnectedO=set(),
-            discWalls=set()):
+            self, table, position, initialFor, connectedX=frozenset(),
+            connectedO=frozenset(),
+            oneWayConnectedX=frozenset(),
+            oneWayConnectedO=frozenset(),
+            discWalls=frozenset()):
         self.table = table
         self.position = position
         self.initialFor = initialFor[0] if initialFor else None
-        self.connectedX = set(connectedX)
-        self.connectedO = set(connectedO)
-        self.oneWayConnectedX = set(oneWayConnectedX)
-        self.oneWayConnectedO = set(oneWayConnectedO)
-        self.discWalls = set(discWalls)
+        self.connectedX = frozenset(connectedX)
+        self.connectedO = frozenset(connectedO)
+        self.oneWayConnectedX = frozenset(oneWayConnectedX)
+        self.oneWayConnectedO = frozenset(oneWayConnectedO)
+        self.discWalls = frozenset(discWalls)
 
     def getCopy(self, table):
         return Field(table, self.position, self.initialFor, self.connectedX, self.connectedO,
@@ -24,44 +24,44 @@ class Field:
 
     def connectX(self, f, mirrored=True):
         if f.position not in self.connectedX | self.discWalls:
-            self.connectedX.add(f.position)
+            self.connectedX |= frozenset({f.position})
             if mirrored:
                 f.connectX(self)
             else:
-                f.oneWayConnectedX.add(self.position)
+                f.oneWayConnectedX |= frozenset({self.position})
 
     def connectO(self, f, mirrored=True):
         if f.position not in self.connectedO | self.discWalls:
-            self.connectedO.add(f.position)
+            self.connectedO |= frozenset({f.position})
             if mirrored:
                 f.connectO(self)
             else:
-                f.oneWayConnectedO.add(self.position)
+                f.oneWayConnectedO |= frozenset({self.position})
 
     def disconnect(self, f, w=None):
         if w:
-            self.discWalls.add(f.position)
+            self.discWalls |= frozenset({f.position})
             if w == "G":
-                self.discWalls.add((f.position[0]+1, f.position[1]))
+                self.discWalls |= frozenset({(f.position[0]+1, f.position[1])})
             else:
-                self.discWalls.add((f.position[0], f.position[1]+1))
+                self.discWalls |= frozenset({(f.position[0], f.position[1]+1)})
         self.disconnectX(f, w)
         self.disconnectO(f, w)
 
     def disconnectX(self, f, w=None):
         if (w != None or (f.initialFor != "O" and self.initialFor != "O")):
-            f.oneWayConnectedX.discard(self.position)
+            f.oneWayConnectedX = f.oneWayConnectedX.difference(frozenset({self.position}))
             if f.position in self.connectedX:
-                self.connectedX.discard(f.position)
+                self.connectedX = self.connectedX.difference(frozenset({f.position}))
                 f.disconnectX(self, w)
             elif f.position in self.oneWayConnectedX:
                 f.disconnectX(self, w)
 
     def disconnectO(self, f, w=None):
         if (w != None or (f.initialFor != "X" and self.initialFor != "X")):
-            f.oneWayConnectedO.discard(self.position)
+            f.oneWayConnectedO = f.oneWayConnectedO.difference(frozenset({self.position}))
             if f.position in self.connectedO:
-                self.connectedO.discard(f.position)
+                self.connectedO = self.connectedO.difference(frozenset({f.position}))
                 f.disconnectO(self, w)
             elif f.position in self.oneWayConnectedO:
                 f.disconnectO(self, w)

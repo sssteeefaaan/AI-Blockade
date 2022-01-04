@@ -3,11 +3,20 @@ from field import Field
 
 
 class Table:
-    def __init__(self, n=11, m=14, blueWalls=set(), greenWalls=set(), X=None, O=None, xPaths=[None]*4, oPaths=[None]*4):
+    def __init__(
+            self,
+            n=11,
+            m=14,
+            blueWalls=frozenset(),
+            greenWalls=frozenset(),
+            X=None,
+            O=None,
+            xPaths=[None] * 4,
+            oPaths=[None] * 4):
         self.n = n
         self.m = m
-        self.blueWalls = set(blueWalls)
-        self.greenWalls = set(greenWalls)
+        self.blueWalls = frozenset(blueWalls)
+        self.greenWalls = frozenset(greenWalls)
         self.fields = dict()
         self.X = X.getCopy() if X else None
         self.O = O.getCopy() if O else None
@@ -42,10 +51,12 @@ class Table:
         for i in range(1, self.n + 1):
             for j in range(1, self.m + 1):
                 pos = (i, j)
-                connected = set(Table.createManhattan(
+                connectedX = list(Table.createManhattan(
                     pos, 1, self.n, self.m, 2))
+                connectedO = list(connectedX)
+                connectedO.reverse()
                 self.fields[pos] = Field(self, pos, initial.get(
-                    pos, None), connected, connected)
+                    pos, None), connectedX, connectedO)
                 match initial.get(pos, None):
                     case "X1" | "X2":
                         manGen = list(map(lambda x: ((pos[0] - x[0], pos[1] - x[1]), x),
@@ -68,8 +79,10 @@ class Table:
                 'name': initial[k][0],
                 'choice': int(initial[k][1])
             })
-        self.connectO(connectInitialO, False)
+
         self.connectX(connectInitialX, False)
+        connectInitialO.reverse()
+        self.connectO(connectInitialO, False)
 
     def setPaths(self):
         self.setPathsX()
@@ -94,7 +107,7 @@ class Table:
             self.O.noBlueWalls -= 1
         pos = wall['position']
 
-        self.blueWalls.add(pos)
+        self.blueWalls |= frozenset({pos})
         forDisconnect = []
         up1 = (pos[0] - 1) > 0
         down1 = (pos[0] + 1) <= self.n
@@ -139,7 +152,7 @@ class Table:
             self.O.noGreenWalls -= 1
         pos = wall['position']
 
-        self.greenWalls.add(pos)
+        self.greenWalls |= frozenset({pos})
         forDisconnect = []
         up1 = (pos[0] - 1) > 0
         down1 = (pos[0] + 1) <= self.n
@@ -174,8 +187,14 @@ class Table:
         self.disconnect(forDisconnect, "G")
 
     def setGamePiece(self, gamePiece):
-        gamePiece['previous position'] = self.X.movePiece(
-            gamePiece) if gamePiece['name'] == "X" else self.O.movePiece(gamePiece)
+        if gamePiece['name'] == "X":
+            pos = self.X.movePiece(gamePiece)
+            if not gamePiece.get('previous position', None):
+                gamePiece['previous position'] = pos
+        elif gamePiece['name'] == "O":
+            pos = self.O.movePiece(gamePiece)
+            if not gamePiece.get('previous position', None):
+                gamePiece['previous position'] = pos
 
         forConnect = list(
             map(
@@ -201,10 +220,17 @@ class Table:
             self.disconnectO(forDisconnect + forPrevConnect)
             self.connectO(forConnect, False, gamePiece['position'])
             self.connectO(forPrevDisconnect)
-        else:
+        elif gamePiece['name'] == "O":
             self.disconnectX(forDisconnect + forPrevConnect)
             self.connectX(forConnect, False, gamePiece['position'])
             self.connectX(forPrevDisconnect)
+
+    def playMove(self, move):
+        if move.get('green wall', None):
+            self.setGreenWall(move['green wall'])
+        elif move.get('blue wall', None):
+            self.setBlueWall(move['blue wall'])
+        self.setGamePiece(move['game piece'])
 
     def connect(self, vals):
         for (x, y) in vals:
@@ -249,10 +275,10 @@ class Table:
             self.fields[x].disconnectO(
                 self.fields[(x[0] + y[0], x[1] + y[1])])
 
-    def areConnected(self, currentPos, followedPos, name="X"):
+    def areConnected(self, currentPos, followedPos, name):
         if name == "X":
             return followedPos in self.fields[currentPos].connectedX
-        else:
+        elif name == "O":
             return followedPos in self.fields[currentPos].connectedO
 
     def isCorrectBlueWall(self, pos):
