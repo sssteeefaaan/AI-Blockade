@@ -107,43 +107,41 @@ class Table:
         else:
             self.O.noBlueWalls -= 1
         pos = wall['position']
-
         self.blueWalls |= frozenset({pos})
-        forDisconnect = []
+        forDisconnect = frozenset()
         up1 = (pos[0] - 1) > 0
         down1 = (pos[0] + 1) <= self.n
         down2 = (pos[0] + 2) <= self.n
         left1 = (pos[1] - 1) > 0
         right1 = (pos[1] + 1) <= self.m
         right2 = (pos[1] + 2) <= self.m
-
         if down1:
-            forDisconnect += [(pos, (1, 0))]
+            forDisconnect |= frozenset({(pos, (1, 0))})
             if right1:
-                forDisconnect += [(pos, (1, 1))]
-                forDisconnect += [((pos[0], pos[1] + 1), (1, -1)),
-                                  ((pos[0], pos[1] + 1), (1, 0))]
+                forDisconnect |= frozenset({(pos, (1, 1))})
+                forDisconnect |= frozenset({((pos[0], pos[1] + 1), (1, -1)), ((pos[0], pos[1] + 1), (1, 0))})
                 if down2:
-                    forDisconnect += [((pos[0], pos[1] + 1), (2, 0))]
+                    forDisconnect |= frozenset({((pos[0], pos[1] + 1), (2, 0))})
                 if up1:
-                    forDisconnect += [((pos[0] + 1, pos[1] + 1), (-2, 0))]
+                    forDisconnect |= frozenset({((pos[0] + 1, pos[1] + 1), (-2, 0))})
             if up1:
-                forDisconnect += [((pos[0] + 1, pos[1]), (-2, 0))]
+                forDisconnect |= frozenset({((pos[0] + 1, pos[1]), (-2, 0))})
             if down2:
-                forDisconnect += [(pos, (2, 0))]
-            if left1 and (
-                (pos[0],
-                 pos[1] - 2) in self.blueWalls or (pos[0] - 1, pos[1] - 1) in self.greenWalls
-                    or (pos[0] + 1, pos[1] - 1) in self.greenWalls):
-                forDisconnect += [(pos, (1, -1)),
-                                  ((pos[0]+1, pos[1]), (-1, -1))]
-            if right2 and (
-                (pos[0],
-                 pos[1] + 2) in self.blueWalls or (pos[0] - 1, pos[1] + 1) in self.greenWalls
-                    or (pos[0] + 1, pos[1] + 1) in self.greenWalls):
-                forDisconnect += [((pos[0], pos[1]+1), (1, 1)),
-                                  ((pos[0]+1, pos[1]+1), (-1, 1))]
-
+                forDisconnect |= frozenset({(pos, (2, 0))})
+            if left1:
+                if (pos[0], pos[1] - 2) in self.blueWalls or (pos[0], pos[1]-1) in self.greenWalls:
+                    forDisconnect |= frozenset({(pos, (1, -1)), ((pos[0] + 1, pos[1]), (-1, -1))})
+                if (pos[0] - 1, pos[1] - 1) in self.greenWalls:
+                    forDisconnect |= frozenset({(pos, (1, -1))})
+                if (pos[0] + 1, pos[1] - 1) in self.greenWalls:
+                    forDisconnect |= frozenset({((pos[0] + 1, pos[1]), (-1, -1))})
+            if right2:
+                if (pos[0], pos[1] + 2) in self.blueWalls or (pos[0], pos[1] + 1) in self.greenWalls:
+                    forDisconnect |= frozenset({((pos[0], pos[1] + 1), (1, 1)), ((pos[0] + 1, pos[1] + 1), (-1, 1))})
+                if (pos[0] + 1, pos[1] + 1) in self.greenWalls:
+                    forDisconnect |= frozenset({((pos[0] + 1, pos[1] + 1), (-1, 1))})
+                if (pos[0] - 1, pos[1] + 1) in self.greenWalls:
+                    forDisconnect |= frozenset({((pos[0], pos[1] + 1), (1, 1))})
         self.disconnect(forDisconnect, "B")
 
     def setGreenWall(self, wall):
@@ -152,9 +150,8 @@ class Table:
         else:
             self.O.noGreenWalls -= 1
         pos = wall['position']
-
         self.greenWalls |= frozenset({pos})
-        forDisconnect = []
+        forDisconnect = frozenset()
         up1 = (pos[0] - 1) > 0
         down1 = (pos[0] + 1) <= self.n
         down2 = (pos[0] + 2) <= self.n
@@ -163,28 +160,33 @@ class Table:
         right2 = (pos[1] + 2) <= self.m
 
         if right1:
-            forDisconnect += [(pos, (0, 1))]
+            forDisconnect |= frozenset({(pos, (0, 1))})
             if down1:
-                forDisconnect += [(pos, (1, 1))]
-                forDisconnect += [((pos[0] + 1, pos[1]), (-1, 1)),
-                                  ((pos[0] + 1, pos[1]), (0, 1))]
+                forDisconnect |= frozenset({(pos, (1, 1))})
+                forDisconnect |= frozenset({((pos[0] + 1, pos[1]), (-1, 1)), ((pos[0] + 1, pos[1]), (0, 1))})
                 if left1:
-                    forDisconnect += [((pos[0] + 1, pos[1] + 1), (0, -2))]
-                if down2 and ((pos[0] + 2, pos[1]) in self.greenWalls
-                              or (pos[0] + 1, pos[1] - 1) in self.blueWalls or (pos[0] + 1, pos[1] + 1) in self.blueWalls):
-                    forDisconnect += [((pos[0]+1, pos[1]), (1, 1)),
-                                      ((pos[0] + 1, pos[1] + 1), (1, -1))]
-            if up1 and (
-                (pos[0] - 2, pos[1]) in self.greenWalls or (pos[0] - 1, pos[1] - 1) in self.blueWalls
-                    or (pos[0] - 1, pos[1] + 1) in self.blueWalls):
-                forDisconnect += [(pos, (-1, 1)),
-                                  ((pos[0], pos[1] + 1), (-1, -1))]
+                    forDisconnect |= frozenset({((pos[0] + 1, pos[1] + 1), (0, -2))})
+                if down2:
+                    if (pos[0] + 2, pos[1]) in self.greenWalls or (pos[0] + 1, pos[1]) in self.blueWalls:
+                        forDisconnect |= frozenset({((pos[0] + 1, pos[1]), (1, 1)),
+                                                   ((pos[0] + 1, pos[1] + 1), (1, -1))})
+                    if (pos[0] + 1, pos[0] + 1) in self.blueWalls:
+                        forDisconnect |= frozenset({((pos[0] + 1, pos[0] + 1), (1, -1))})
+                    if (pos[0] + 1, pos[1] - 1) in self.blueWalls:
+                        forDisconnect |= frozenset({((pos[0] + 1, pos[1]), (1, 1))})
+            if up1:
+                if (pos[0] - 2, pos[1]) in self.greenWalls or (pos[0] - 1, pos[1]) in self.blueWalls:
+                    forDisconnect |= frozenset({(pos, (-1, 1)), ((pos[0], pos[1] + 1), (-1, -1))})
+                if (pos[0] - 1, pos[1] - 1) in self.blueWalls:
+                    forDisconnect |= frozenset({(pos, (-1, 1))})
+                if (pos[0] - 1, pos[1] + 1) in self.blueWalls:
+                    forDisconnect |= frozenset({((pos[0], pos[1] + 1), (-1, -1))})
             if left1:
-                forDisconnect += [((pos[0], pos[1] + 1), (0, -2))]
+                forDisconnect |= frozenset({((pos[0], pos[1] + 1), (0, -2))})
         if right2:
-            forDisconnect += [(pos, (0, 2))]
+            forDisconnect |= frozenset({(pos, (0, 2))})
             if down1:
-                forDisconnect += [((pos[0] + 1, pos[1]), (0, 2))]
+                forDisconnect |= frozenset({((pos[0] + 1, pos[1]), (0, 2))})
         self.disconnect(forDisconnect, "G")
 
     def setGamePiece(self, gamePiece):

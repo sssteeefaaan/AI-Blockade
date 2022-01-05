@@ -38,10 +38,7 @@ class Game:
         while not self.winner:
             if self.next.isComputer:
                 self.table = Game.minimax(self.table, 1, self.next, ([self.table], -50), ([self.table], 50))
-                self.next = self.table.X if self.next.name == self.table.O.name else self.table.O
-                self.winner = self.table.findWinner()
-                self.table.showPaths(True)
-                self.view.showTable(*self.table.getData())
+                self.nextMove()
             else:
                 parsedMove = Game.parseMove(input(f"{self.next.name} is on the move!\n"))
                 if not parsedMove['errors']:
@@ -50,15 +47,18 @@ class Game:
                         if move.get('virtual', None):
                             self.table = move['virtual']
                         self.table.playMove(move)
-                        self.next = self.table.X if self.next.name == self.table.O.name else self.table.O
-                        self.winner = self.table.findWinner()
-                        self.table.showPaths(True)
-                        self.view.showTable(*self.table.getData())
+                        self.nextMove()
                     else:
                         print(move['errors'])
                 else:
                     print(parsedMove['errors'])
         print(f"{self.winner.name} won! Congrats!")
+
+    def nextMove(self):
+        self.next = self.table.X if self.next.name == self.table.O.name else self.table.O
+        self.winner = self.table.findWinner()
+        self.table.showPaths(True)
+        self.view.showTable(*self.table.getData())
 
     @staticmethod
     def genNewStates(currentState, player):
