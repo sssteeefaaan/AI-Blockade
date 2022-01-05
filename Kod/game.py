@@ -110,12 +110,10 @@ class Game:
                         for bws in states['blue wall']:
                             temp = bws.getCopy()
                             temp.setGamePiece(dict(gp))
-                            # if temp.canBothPlayersFinish(True, True):
                             states['new'].append(temp)
                         for gws in states['green wall']:
                             temp = gws.getCopy()
                             temp.setGamePiece(dict(gp))
-                            # if temp.canBothPlayersFinish(True, True):
                             states['new'].append(temp)
         elif gp['name'] == "O":
             positions = playerReff.getCurrectPositions()
@@ -126,7 +124,6 @@ class Game:
                         gp['position'] = newPos
                         temp = currentState.getCopy()
                         temp.setGamePiece(dict(gp))
-                        # if temp.canBothPlayersFinish(True, True):
                         states['new'].append(temp)
                 else:
                     for newPos in currentState.fields[positions[choice - 1]].connectedO:
@@ -134,12 +131,10 @@ class Game:
                         for bws in states['blue wall']:
                             temp = bws.getCopy()
                             temp.setGamePiece(dict(gp))
-                            # if temp.canBothPlayersFinish(True, True):
                             states['new'].append(temp)
                         for gws in states['green wall']:
                             temp = gws.getCopy()
                             temp.setGamePiece(dict(gp))
-                            # if temp.canBothPlayersFinish(True, True):
                             states['new'].append(temp)
         print(f"Generated {len(states['new'])} states in {monotonic() - currTime}s!")
         return states['new']
