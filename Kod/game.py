@@ -1,7 +1,7 @@
 from view import View
 from table import Table
 from sys import setrecursionlimit
-from time import monotonic_ns
+from time import monotonic
 
 setrecursionlimit(128000)
 
@@ -62,8 +62,8 @@ class Game:
 
     @staticmethod
     def genNewStates(currentState, player):
-        print(f"Generating new states for player {player}... please be patient...")
-        currTime = monotonic_ns()
+        print(f"Generating new states for player {player}. Please be patient...")
+        currTime = monotonic()
         playerReff = currentState.X if player == "X" else currentState.O
         states = {
             'blue wall': list(),
@@ -141,7 +141,7 @@ class Game:
                             temp.setGamePiece(dict(gp))
                             # if temp.canBothPlayersFinish(True, True):
                             states['new'].append(temp)
-        print(f"Generated {len(states['new'])} for {monotonic_ns() - currTime}ns!")
+        print(f"Generated {len(states['new'])} states in {monotonic() - currTime}s!")
         return states['new']
 
     @staticmethod
