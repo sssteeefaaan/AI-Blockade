@@ -27,7 +27,7 @@ class Table:
         copy = Table(self.n, self.m, self.blueWalls,
                      self.greenWalls, self.X, self.O, self.xPaths, self.oPaths)
         for key in self.fields.keys():
-            copy.fields[key] = self.fields[key].getCopy(copy)
+            copy.fields[key] = self.fields[key].getCopy()
         return copy
 
     def getData(self):
@@ -55,7 +55,7 @@ class Table:
                     pos, 1, self.n, self.m, 2))
                 connectedO = list(connectedX)
                 connectedO.reverse()
-                self.fields[pos] = Field(self, pos, initial.get(
+                self.fields[pos] = Field(pos, initial.get(
                     pos, None), connectedX, connectedO)
                 match initial.get(pos, None):
                     case "X1" | "X2":

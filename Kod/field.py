@@ -1,11 +1,10 @@
 class Field:
     def __init__(
-            self, table, position, initialFor, connectedX=frozenset(),
+            self, position, initialFor, connectedX=frozenset(),
             connectedO=frozenset(),
             oneWayConnectedX=frozenset(),
             oneWayConnectedO=frozenset(),
             discWalls=frozenset()):
-        self.table = table
         self.position = position
         self.initialFor = initialFor[0] if initialFor else None
         self.connectedX = frozenset(connectedX)
@@ -14,8 +13,8 @@ class Field:
         self.oneWayConnectedO = frozenset(oneWayConnectedO)
         self.discWalls = frozenset(discWalls)
 
-    def getCopy(self, table):
-        return Field(table, self.position, self.initialFor, self.connectedX, self.connectedO,
+    def getCopy(self):
+        return Field(self.position, self.initialFor, self.connectedX, self.connectedO,
                      self.oneWayConnectedX, self.oneWayConnectedO, self.discWalls)
 
     def connect(self, f):
