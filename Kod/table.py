@@ -31,7 +31,7 @@ class Table:
         return copy
 
     def getData(self):
-        return (self.greenWalls, self.blueWalls, {"X": self.X.getCurrectPositions(), "O": self.O.getCurrectPositions()}, self.X.getWallNumber(), self.O.getWallNumber())
+        return (self.greenWalls, self.blueWalls, {"X": self.X.getCurrentPositions(), "O": self.O.getCurrentPositions()}, self.X.getWallNumber(), self.O.getWallNumber())
 
     def onInit(self, initial, players):
         self.setPlayers(players)
@@ -41,9 +41,9 @@ class Table:
     def setPlayers(self, players):
         for player in players.keys():
             if player == "X":
-                self.X = Player("X", *players[player])
+                self.X = Player("X", *players[player], players[player][-1])
             elif player == "O":
-                self.O = Player("O", *players[player])
+                self.O = Player("O", *players[player], players[player][-1])
 
     def setFields(self, initial):
         connectInitialX = list()
@@ -89,10 +89,10 @@ class Table:
         self.setPathsO()
 
     def setPathsX(self):
-        self.xPaths = self.findShortestPathsX(self.X.getCurrectPositions(), self.O.getInitialPositions())
+        self.xPaths = self.findShortestPathsX(self.X.getCurrentPositions(), self.O.getInitialPositions())
 
     def setPathsO(self):
-        self.oPaths = self.findShortestPathsO(self.O.getCurrectPositions(), self.X.getInitialPositions())
+        self.oPaths = self.findShortestPathsO(self.O.getCurrentPositions(), self.X.getInitialPositions())
 
     def findWinner(self):
         if self.O.isWinner(self.X.getInitialPositions()):

@@ -1,3 +1,4 @@
+from turtle import position
 from gamePiece import GamePiece
 
 
@@ -17,12 +18,12 @@ class Player:
         return Player(
             self.name, self.isComputer, self.getWallNumber(),
             self.getInitialPositions(),
-            self.getCurrectPositions())
+            self.getCurrentPositions())
 
     def getInitialPositions(self):
         return (self.firstGP.home, self.secondGP.home)
 
-    def getCurrectPositions(self):
+    def getCurrentPositions(self):
         return (self.firstGP.position, self.secondGP.position)
 
     def getWallNumber(self):
