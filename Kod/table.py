@@ -170,7 +170,7 @@ class Table:
                     if (pos[0] + 2, pos[1]) in self.greenWalls or (pos[0] + 1, pos[1]) in self.blueWalls:
                         forDisconnect |= frozenset({((pos[0] + 1, pos[1]), (1, 1)),
                                                    ((pos[0] + 1, pos[1] + 1), (1, -1))})
-                    if (pos[0] + 1, pos[0] + 1) in self.blueWalls:
+                    if (pos[0] + 1, pos[1] + 1) in self.blueWalls:
                         forDisconnect |= frozenset({((pos[0] + 1, pos[0] + 1), (1, -1))})
                     if (pos[0] + 1, pos[1] - 1) in self.blueWalls:
                         forDisconnect |= frozenset({((pos[0] + 1, pos[1]), (1, 1))})
