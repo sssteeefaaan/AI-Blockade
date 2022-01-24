@@ -1,4 +1,3 @@
-from inspect import stack
 from view import View
 from table import Table
 from sys import setrecursionlimit
@@ -6,13 +5,12 @@ from time import monotonic
 
 setrecursionlimit(128000)
 
-
 class Game:
     def __init__(self, n=11, m=14, greenWall="\u01c1", blueWall="\u2550", rowSep="\u23AF"):
         self.table = Table(n, m)
         self.view = View(n, m, greenWall, blueWall, rowSep)
         Game.oo = 50
-        Game.r = 5
+        Game.r = 0
         Game.minmaxDepth = 1
         self.next = None
         self.winner = None
@@ -26,9 +24,15 @@ class Game:
         while not self.next:
             match input("X/o?\n"):
                 case ("X" | "x"):
-                    playerInfo = {"X": (False, wallNumber, xPos), "O": (True, wallNumber, oPos)}
+                    playerInfo = {
+                        "X": (False, wallNumber, xPos),
+                        "O": (True, wallNumber, oPos)
+                    }
                 case ("O" | "o"):
-                    playerInfo = {"X": (True, wallNumber, xPos), "O": (False, wallNumber, oPos)}
+                    playerInfo = {
+                        "X": (True, wallNumber, xPos),
+                        "O": (False, wallNumber, oPos)
+                    }
                 case _:
                     print("Invalid player selection input!")
                     continue
@@ -74,67 +78,43 @@ class Game:
         onTheMoveReff = currentState.X if player == "X" else currentState.O
         nextReff = currentState.O if player == "X" else currentState.X
         states = {
-            'blue wall 1': frozenset(),
-            'blue wall 2': frozenset(),
-            'green wall 1': frozenset(),
-            'green wall 2': frozenset(),
+            'blue wall': frozenset(),
+            'green wall': frozenset(),
             'new': list()
         }
         positions = nextReff.getCurrentPositions()
         if onTheMoveReff.noGreenWalls > 0:
             grow = 0
-            while not states['green wall 1'] and not states['green wall 2']:
-                for i in range(positions[0][0] - (Game.r + grow), positions[0][0] + Game.r + grow + 1):
-                    if 0 < i < currentState.n:
-                        for j in range(positions[0][1] - (Game.r + grow), positions[0][1] + Game.r + grow + 1):
-                            if 0 < j < currentState.m and currentState.isCorrectGreenWall((i, j)):
-                                temp = currentState.getCopy()
-                                temp.setGreenWall({
-                                    'position': (i, j),
-                                    'next': onTheMoveReff.name
-                                })
-                                if not currentState.isConnectedGreenWall((i, j)) or temp.canBothPlayersFinish(True, True):
-                                    states['green wall 1'] |= frozenset({temp})
-                for i in range(positions[1][0] - (Game.r + grow), positions[1][0] + Game.r + grow + 1):
-                    if 0 < i < currentState.n:
-                        for j in range(positions[1][1] - (Game.r + grow), positions[1][1] + Game.r + grow + 1):
-                            if 0 < j < currentState.m and currentState.isCorrectGreenWall((i, j)):
-                                temp = currentState.getCopy()
-                                temp.setGreenWall({
-                                    'position': (i, j),
-                                    'next': onTheMoveReff.name
-                                })
-                                if not currentState.isConnectedGreenWall((i, j)) or temp.canBothPlayersFinish(True, True):
-                                    states['green wall 2'] |= frozenset({temp})
+            while not states['green wall']:
+                for pos in positions:
+                    for i in range(pos[0] - (Game.r + grow), pos[0] + Game.r + grow + 1):
+                        if 0 < i < currentState.n:
+                            for j in range(pos[1] - (Game.r + grow), pos[1] + Game.r + grow + 1):
+                                if 0 < j < currentState.m and currentState.isCorrectGreenWall((i, j)):
+                                    temp = currentState.getCopy()
+                                    temp.setGreenWall({
+                                        'position': (i, j),
+                                        'next': onTheMoveReff.name
+                                    })
+                                    if not currentState.isConnectedGreenWall((i, j)) or temp.canBothPlayersFinish(True, True):
+                                        states['green wall'] |= frozenset({temp})
                 grow += 1
-        states['green wall'] = states['green wall 1'] | states['green wall 2']
         if onTheMoveReff.noBlueWalls > 0:
             grow = 0
-            while not states['blue wall 1'] and not states['blue wall 2']:
-                for i in range(positions[0][0] - (Game.r + grow), positions[0][0] + Game.r + grow + 1):
-                    if 0 < i < currentState.n:
-                        for j in range(positions[0][1] - (Game.r + grow), positions[0][1] + Game.r + grow + 1):
-                            if 0 < j < currentState.m and currentState.isCorrectBlueWall((i, j)):
-                                temp = currentState.getCopy()
-                                temp.setBlueWall({
-                                    'position': (i, j),
-                                    'next': onTheMoveReff.name
-                                })
-                                if not currentState.isConnectedBlueWall((i, j)) or temp.canBothPlayersFinish(True, True):
-                                    states['blue wall 1'] |= frozenset({temp})
-                for i in range(positions[1][0] - (Game.r + grow), positions[1][0] + Game.r + grow + 1):
-                    if 0 < i < currentState.n:
-                        for j in range(positions[1][1] - (Game.r + grow), positions[1][1] + Game.r + grow + 1):
-                            if 0 < j < currentState.m and currentState.isCorrectBlueWall((i, j)):
-                                temp = currentState.getCopy()
-                                temp.setBlueWall({
-                                    'position': (i, j),
-                                    'next': onTheMoveReff.name
-                                })
-                                if not currentState.isConnectedBlueWall((i, j)) or temp.canBothPlayersFinish(True, True):
-                                    states['blue wall 2'] |= frozenset({temp})
-                grow += 1
-        states['blue wall'] = states['blue wall 1'] | states['blue wall 2']
+            while not states['blue wall']:
+                for pos in positions:
+                    for i in range(pos[0] - (Game.r + grow), pos[0] + Game.r + grow + 1):
+                        if 0 < i < currentState.n:
+                            for j in range(pos[1] - (Game.r + grow), pos[1] + Game.r + grow + 1):
+                                if 0 < j < currentState.m and currentState.isCorrectBlueWall((i, j)):
+                                    temp = currentState.getCopy()
+                                    temp.setBlueWall({
+                                        'position': (i, j),
+                                        'next': onTheMoveReff.name
+                                    })
+                                    if not currentState.isConnectedBlueWall((i, j)) or temp.canBothPlayersFinish(True, True):
+                                        states['blue wall'] |= frozenset({temp})
+                    grow += 1
         gp = {'name': onTheMoveReff.name}
         positions = onTheMoveReff.getCurrentPositions()
         if gp['name'] == "X":
@@ -228,9 +208,9 @@ class Game:
                 xMinPath = len(min(state.xPaths, key=lambda x: len(x)))
                 oMinPath = len(min(state.oPaths, key=lambda x: len(x)))
                 if player == "X":
-                    return oMinPath / xMinPath
+                    return oMinPath + 1 / xMinPath
                 else:
-                    return xMinPath / oMinPath
+                    return xMinPath + 1 / oMinPath
             else:
                 return -Game.oo + 1
 

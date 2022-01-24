@@ -1,3 +1,10 @@
+from termcolor import colored
+import os
+os.system('color')
+color = {
+    "X": "red",
+    "O": "yellow"
+}
 class View:
     def __init__(self, n=11, m=14, greenWall="\u01c1", blueWall="\u2550", rowSep="\u23AF"):
         self.n = n
@@ -20,20 +27,20 @@ class View:
             table.append(list(t))
 
         for gw in greenWalls:
-            table[gw[0] + 1] = table[gw[0] + 1][:(gw[1] << 1) + 1] + [self.greenWall] + table[gw[0] + 1][(gw[1] + 1) << 1:]
-            table[gw[0] + 2] = table[gw[0] + 2][:(gw[1] << 1) + 1] + [self.greenWall] + table[gw[0] + 2][(gw[1] + 1) << 1:]
+            table[gw[0] + 1] = table[gw[0] + 1][:(gw[1] << 1) + 1] + [colored(self.greenWall, "green")] + table[gw[0] + 1][(gw[1] + 1) << 1:]
+            table[gw[0] + 2] = table[gw[0] + 2][:(gw[1] << 1) + 1] + [colored(self.greenWall, "green")] + table[gw[0] + 2][(gw[1] + 1) << 1:]
 
         for bw in blueWalls:
-            table[bw[0] + 1] = table[bw[0] + 1][:(self.m + 2 + bw[1]) << 1] + [self.blueWall] + [" "] + [self.blueWall] + table[bw[0] + 1][((self.m + 2 + bw[1]) << 1) + 3:]
+            table[bw[0] + 1] = table[bw[0] + 1][:(self.m + 2 + bw[1]) << 1] + [colored(self.blueWall, "blue")] + [" "] + [colored(self.blueWall, "blue")] + table[bw[0] + 1][((self.m + 2 + bw[1]) << 1) + 3:]
 
         for player in players.keys():
             for i in range(2):
-                table[players[player][i][0] + 1] = table[players[player][i][0] + 1][:players[player][i][1]<< 1] + [player] + table[players[player][i][0] + 1][(players[player][i][1] << 1) + 1:]
+                table[players[player][i][0] + 1] = table[players[player][i][0] + 1][:players[player][i][1]<< 1] + [colored(player, color[player])] + table[players[player][i][0] + 1][(players[player][i][1] << 1) + 1:]
 
         for r in table:
             for v in r:
                 print(v, end="")
             print()
-        print("\n\tWalls X\t\t|\tWalls O")
-        print(f"\tB: {xWallNumb[0]}\t\t|\tB: {oWallNumb[0]}")
-        print(f"\tG: {xWallNumb[1]}\t\t|\tG: {oWallNumb[1]}\n")
+        print(f"\n\tWalls {colored('X', 'red')}\t\t|\tWalls {colored('O', 'yellow')}")
+        print(f"\t{colored('B: ' + str(xWallNumb[0]), 'blue')}\t\t|\t{colored('B: ' + str(oWallNumb[0]), 'blue')}")
+        print(f"\t{colored('G: ' + str(xWallNumb[1]), 'green')}\t\t|\t{colored('G: ' + str(oWallNumb[1]), 'green')}\n")
