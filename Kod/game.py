@@ -353,14 +353,15 @@ def main():
         m = m if m else "14"
     m = int(m)
     initial = {}
-    while len(initial.keys()) < 2 or n < temp[0] or temp[0] < 1 or m <  temp[1] or temp[1] < 1:
+    while len(initial.keys()) < 2:
         temp = input(f"Input {len(initial)+1}. initial position for X (Empty for the default value of ({4 if len(initial) == 0 else 8}, 4)): ")
         temp = temp if temp else f"({4 if len(initial) == 0 else 8}, 4)"
         temp = tuple(map(lambda x: int(x), temp.replace("(", "")
                                                 .replace(")", "")
                                                 .replace(",", "")
                                                 .split(" ")))
-        initial[temp] = f"X{len(initial)+1}"
+        if 0 < temp[0] < n and 0 <  temp[1] < m and not initial.get(temp, None):
+            initial[temp] = f"X{len(initial)+1}"
     while len(initial.keys()) < 4:
         temp = input(f"Input {len(initial)-1}. initial position for O (Empty for the default value of ({4 if len(initial)-1 == 1 else 8}, 11)): ")
         temp = temp if temp else f"({4 if len(initial)-1 == 1 else 8}, 11)"
@@ -368,7 +369,8 @@ def main():
                                                 .replace(")", "")
                                                 .replace(",", "")
                                                 .split(" ")))
-        initial[temp] = f"O{len(initial)-1}"
+        if 0 < temp[0] < n and 0 <  temp[1] < m and not initial.get(temp, None):
+            initial[temp] = f"O{len(initial)-1}"
     wallNumb = ""
     while not str.isdigit(wallNumb) or int(wallNumb) < 0 or int(wallNumb) > 18:
         wallNumb = input("Input the number of blue/green walls each player has (Empty for the default minimum value of 9, the max is 18): ")
