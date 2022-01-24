@@ -344,33 +344,37 @@ class Game:
 
 def main():
     n = m = ""
-    while not str.isdigit(n) or int(n) < 11 or int(n) > 22:
-        n = input("Input number of rows in the table (Empty for the default minimum value of 11, the max is 22): ")
+    while not str.isdigit(n) or int(n) < 5 or int(n) > 22:
+        n = input("Input the number of rows in the table (Empty for the recommended value of 11. Range is [5-22]): ")
         n = n if n else "11"
-    while not str.isdigit(m) or int(m) < 14 or int(m) > 28:
-        m = input("Input number of columns in the table (Empty for the default minimum value of 14, the maximum is 28): ")
+    n = int(n)
+    while not str.isdigit(m) or int(m) < 5 or int(m) > 28:
+        m = input("Input the number of columns in the table (Empty for the recommended value of 14. Range is [5-28]): ")
         m = m if m else "14"
+    m = int(m)
     initial = {}
-    while len(initial.keys()) < 2:
+    while len(initial.keys()) < 2 or n < temp[0] or temp[0] < 1 or m <  temp[1] or temp[1] < 1:
         temp = input(f"Input {len(initial)+1}. initial position for X (Empty for the default value of ({4 if len(initial) == 0 else 8}, 4)): ")
         temp = temp if temp else f"({4 if len(initial) == 0 else 8}, 4)"
-        initial[tuple(map(lambda x: int(x), temp.replace("(", "")
+        temp = tuple(map(lambda x: int(x), temp.replace("(", "")
                                                 .replace(")", "")
                                                 .replace(",", "")
-                                                .split(" ")))] = f"X{len(initial)+1}"
+                                                .split(" ")))
+        initial[temp] = f"X{len(initial)+1}"
     while len(initial.keys()) < 4:
         temp = input(f"Input {len(initial)-1}. initial position for O (Empty for the default value of ({4 if len(initial)-1 == 1 else 8}, 11)): ")
         temp = temp if temp else f"({4 if len(initial)-1 == 1 else 8}, 11)"
-        initial[tuple(map(lambda x: int(x), temp.replace("(", "")
+        temp = tuple(map(lambda x: int(x), temp.replace("(", "")
                                                 .replace(")", "")
                                                 .replace(",", "")
-                                                .split(" ")))] = f"O{len(initial)-1}"
+                                                .split(" ")))
+        initial[temp] = f"O{len(initial)-1}"
     wallNumb = ""
     while not str.isdigit(wallNumb) or int(wallNumb) < 0 or int(wallNumb) > 18:
         wallNumb = input("Input the number of blue/green walls each player has (Empty for the default minimum value of 9, the max is 18): ")
         wallNumb = wallNumb if wallNumb else "9"
 
-    g = Game(int(n), int(m))
+    g = Game(n, m)
     g.start(initial | {'wallNumber': int(wallNumb)})
 
 
