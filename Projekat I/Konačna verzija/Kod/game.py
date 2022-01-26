@@ -9,11 +9,11 @@ class Game:
     def __init__(self, n=11, m=14, greenWall="\u01c1", blueWall="\u2550", rowSep="\u23AF"):
         self.table = Table(n, m)
         self.view = View(n, m, greenWall, blueWall, rowSep)
-        Game.oo = 50
-        Game.r = 0
-        Game.minmaxDepth = 1
         self.next = None
         self.winner = None
+        Game.oo = float("inf")
+        Game.r = 1
+        Game.minmaxDepth = 1
 
     def start(self, initial):
         xPos = [x for x in initial.keys() if initial[x] in ["X1", "X2"]]
@@ -79,17 +79,16 @@ class Game:
         nextReff = currentState.O if player == "X" else currentState.X
         states = {
             'blue wall': frozenset(),
-            'green wall': frozenset(),
-            'new': list()
+            'green wall': frozenset()
         }
         positions = nextReff.getCurrentPositions()
         if onTheMoveReff.noGreenWalls > 0:
             grow = 0
             while not states['green wall']:
                 for pos in positions:
-                    for i in range(pos[0] - (Game.r + grow), pos[0] + Game.r + grow + 1):
+                    for i in range(pos[0] - (Game.r + grow), pos[0] + Game.r + grow):
                         if 0 < i < currentState.n:
-                            for j in range(pos[1] - (Game.r + grow), pos[1] + Game.r + grow + 1):
+                            for j in range(pos[1] - (Game.r + grow), pos[1] + Game.r + grow):
                                 if 0 < j < currentState.m and currentState.isCorrectGreenWall((i, j)):
                                     temp = currentState.getCopy()
                                     temp.setGreenWall({
@@ -103,9 +102,9 @@ class Game:
             grow = 0
             while not states['blue wall']:
                 for pos in positions:
-                    for i in range(pos[0] - (Game.r + grow), pos[0] + Game.r + grow + 1):
+                    for i in range(pos[0] - (Game.r + grow), pos[0] + Game.r + grow):
                         if 0 < i < currentState.n:
-                            for j in range(pos[1] - (Game.r + grow), pos[1] + Game.r + grow + 1):
+                            for j in range(pos[1] - (Game.r + grow), pos[1] + Game.r + grow):
                                 if 0 < j < currentState.m and currentState.isCorrectBlueWall((i, j)):
                                     temp = currentState.getCopy()
                                     temp.setBlueWall({
@@ -114,7 +113,7 @@ class Game:
                                     })
                                     if not currentState.isConnectedBlueWall((i, j)) or temp.canBothPlayersFinish(True, True):
                                         states['blue wall'] |= frozenset({temp})
-                    grow += 1
+                grow += 1
         gp = {'name': onTheMoveReff.name}
         positions = onTheMoveReff.getCurrentPositions()
         if gp['name'] == "X":
@@ -126,22 +125,19 @@ class Game:
                     temp = currentState.getCopy()
                     temp.setGamePiece(dict(gp))
                     yield temp
-                    # states['new'].append(temp)
             else:
                 for choice in range(1, 3):
                     gp['choice'] = choice
                     for newPos in currentState.fields[positions[choice - 1]].connectedX:
                         gp['position'] = newPos
-                        for bws in states['blue wall']:
-                            temp = bws.getCopy()
-                            temp.setGamePiece(dict(gp))
-                            yield temp
-                            # states['new'].append(temp)
                         for gws in states['green wall']:
                             temp = gws.getCopy()
                             temp.setGamePiece(dict(gp))
                             yield temp
-                            # states['new'].append(temp)
+                        for bws in states['blue wall']:
+                            temp = bws.getCopy()
+                            temp.setGamePiece(dict(gp))
+                            yield temp
                 
         elif gp['name'] == "O":
             if not states['blue wall'] and not states['green wall']:
@@ -152,22 +148,19 @@ class Game:
                     temp = currentState.getCopy()
                     temp.setGamePiece(dict(gp))
                     yield temp
-                    # states['new'].append(temp)
             else:
                 for choice in range(1, 3):
                     gp['choice'] = choice
                     for newPos in currentState.fields[positions[choice - 1]].connectedO:
                         gp['position'] = newPos
-                        for bws in states['blue wall']:
-                            temp = bws.getCopy()
-                            temp.setGamePiece(dict(gp))
-                            yield temp
-                            # states['new'].append(temp)
                         for gws in states['green wall']:
                             temp = gws.getCopy()
                             temp.setGamePiece(dict(gp))
                             yield temp
-                            # states['new'].append(temp)
+                        for bws in states['blue wall']:
+                            temp = bws.getCopy()
+                            temp.setGamePiece(dict(gp))
+                            yield temp
         return
 
     @staticmethod
@@ -178,7 +171,6 @@ class Game:
             for branchState in Game.generateNewStates(states[-1], player):
                 alpha = max(alpha, Game.minValue(states + [branchState], depth - 1, player, alpha, beta), key=lambda x: x[1])
                 if alpha[1] >= beta[1]:
-                    # print("Beta odsecanje")
                     return beta
         return alpha
 
@@ -190,7 +182,6 @@ class Game:
             for branchState in Game.generateNewStates(states[-1], player):
                 beta = min(beta, Game.maxValue(states + [branchState], depth - 1, player, alpha, beta), key=lambda x: x[1])
                 if beta[1] <= alpha[1]:
-                    # print("Alpha odsecanje")
                     return alpha
         return beta
 
@@ -345,35 +336,35 @@ class Game:
 def main():
     n = m = ""
     while not str.isdigit(n) or int(n) < 5 or int(n) > 22:
-        n = input("Input the number of rows in the table (Empty for the recommended value of 11. Range is [5-22]): ")
+        n = input("Input the number of rows in the table in range [5-22] (Empty for the recommended value of 11): ")
         n = n if n else "11"
     n = int(n)
     while not str.isdigit(m) or int(m) < 5 or int(m) > 28:
-        m = input("Input the number of columns in the table (Empty for the recommended value of 14. Range is [5-28]): ")
+        m = input("Input the number of columns in the table in range [5-22] (Empty for the recommended value of 14): ")
         m = m if m else "14"
     m = int(m)
     initial = {}
     while len(initial.keys()) < 2:
-        temp = input(f"Input {len(initial)+1}. initial position for X (Empty for the default value of ({4 if len(initial) == 0 else 8}, 4)): ")
+        temp = input(f"Input {len(initial)+1}. initial position for X (Empty for the recommended value of ({4 if len(initial) == 0 else 8}, 4)): ")
         temp = temp if temp else f"({4 if len(initial) == 0 else 8}, 4)"
-        temp = tuple(map(lambda x: int(x), temp.replace("(", "")
+        temp = tuple(map(lambda x: int(x) if str.isdigit(x) else 0, temp.replace("(", "")
                                                 .replace(")", "")
                                                 .replace(",", "")
                                                 .split(" ")))
-        if 0 < temp[0] < n and 0 <  temp[1] < m and not initial.get(temp, None):
+        if len(temp) == 2 and 0 < temp[0] < n and 0 <  temp[1] < m and not initial.get(temp, None):
             initial[temp] = f"X{len(initial)+1}"
     while len(initial.keys()) < 4:
-        temp = input(f"Input {len(initial)-1}. initial position for O (Empty for the default value of ({4 if len(initial)-1 == 1 else 8}, 11)): ")
+        temp = input(f"Input {len(initial)-1}. initial position for O (Empty for the recommended value of ({4 if len(initial)-1 == 1 else 8}, 11)): ")
         temp = temp if temp else f"({4 if len(initial)-1 == 1 else 8}, 11)"
-        temp = tuple(map(lambda x: int(x), temp.replace("(", "")
+        temp = tuple(map(lambda x: int(x) if str.isdigit(x) else 0, temp.replace("(", "")
                                                 .replace(")", "")
                                                 .replace(",", "")
                                                 .split(" ")))
-        if 0 < temp[0] < n and 0 <  temp[1] < m and not initial.get(temp, None):
+        if len(temp) == 2 and 0 < temp[0] < n and 0 <  temp[1] < m and not initial.get(temp, None):
             initial[temp] = f"O{len(initial)-1}"
     wallNumb = ""
-    while not str.isdigit(wallNumb) or int(wallNumb) < 0 or int(wallNumb) > 18:
-        wallNumb = input("Input the number of blue/green walls each player has (Empty for the default minimum value of 9, the max is 18): ")
+    while not str.isdigit(wallNumb) or int(wallNumb) < 0 or int(wallNumb) > (n*m)//8 - 1:
+        wallNumb = input(f"Input the number of blue/green walls each player has [0-{(n*m)//8 - 1}] (Empty for the recommended value of 9): ")
         wallNumb = wallNumb if wallNumb else "9"
 
     g = Game(n, m)
